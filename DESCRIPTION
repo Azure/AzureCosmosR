@@ -1,0 +1,24 @@
+Package: AzureCosmos
+Title: Interface to 'Azure' 'CosmosDB' and table storage
+Version: 0.0.1
+Authors@R: c(
+    person("Hong", "Ooi", , "hongooi@microsoft.com", role = c("aut", "cre")),
+    person("Microsoft", role="cph")
+    )
+Description: An interface to 'Azure CosmosDB' and table storage. Part of the 'AzureR' family of packages.
+URL: https://github.com/Azure/AzureCosmos https://github.com/Azure/AzureR
+BugReports: https://github.com/Azure/AzureCosmos/issues
+License: MIT + file LICENSE
+Depends: 
+    R (>= 3.3)
+Imports: 
+    utils,
+    AzureRMR (>= 2.0.0),
+    AzureStor (>= 3.0.0),
+    openssl,
+    httr
+Suggests:
+    testthat,
+    knitr,
+    rmarkdown
+Roxygen: list(markdown=TRUE)
