@@ -1,4 +1,4 @@
-Package: AzureCosmos
+Package: AzureCosmosR
 Title: Interface to 'Azure' 'CosmosDB' and table storage
 Version: 0.0.1
 Authors@R: c(
@@ -6,8 +6,8 @@ Authors@R: c(
     person("Microsoft", role="cph")
     )
 Description: An interface to 'Azure CosmosDB' and table storage. Part of the 'AzureR' family of packages.
-URL: https://github.com/Azure/AzureCosmos https://github.com/Azure/AzureR
-BugReports: https://github.com/Azure/AzureCosmos/issues
+URL: https://github.com/Azure/AzureCosmosR https://github.com/Azure/AzureR
+BugReports: https://github.com/Azure/AzureCosmosR/issues
 License: MIT + file LICENSE
 Depends: 
     R (>= 3.3)
