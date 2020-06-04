@@ -18,6 +18,7 @@ Imports:
     openssl,
     httr
 Suggests:
+    AzureKeyVault,
     testthat,
     knitr,
     rmarkdown
