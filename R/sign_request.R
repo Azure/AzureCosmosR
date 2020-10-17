@@ -1,3 +1,4 @@
+#' @export
 sign_request.table_endpoint <- function(endpoint, verb, url, headers, api, ...)
 {
     make_sig <- function(key, verb, acct_name, resource, headers)
@@ -21,6 +22,6 @@ sign_request.table_endpoint <- function(endpoint, verb, url, headers, api, ...)
         headers$`x-ms-version` <- api
 
     sig <- make_sig(endpoint$key, verb, acct_name, resource, headers)
-    modifyList(headers, list(Host = url$host, Authorization = sig))
+    modifyList(headers, list(Host=url$host, Authorization=sig))
 }
 
