@@ -1,3 +1,4 @@
+#' @export
 table_endpoint <- function(endpoint, key=NULL, token=NULL, sas=NULL,
                            api_version=getOption("azure_storage_api_version"))
 {
@@ -9,6 +10,7 @@ table_endpoint <- function(endpoint, key=NULL, token=NULL, sas=NULL,
 }
 
 
+#' @export
 call_table_endpoint <- function(endpoint, path, options=list(), headers=list(), body=NULL, ...,
     metadata=c("none", "minimal", "full"))
 {

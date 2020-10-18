@@ -1,17 +1,27 @@
-list_azure_tables <- function(endpoint, metadata=c("none", "minimal", "full"))
+#' @export
+list_azure_tables <- function(endpoint, ...)
 {
-    metadata <- match.arg(metadata)
-    accept <- switch(metadata,
-        "none"="application/json;odata=nometadata",
-        "minimal"="application/json;odata=minimalmetadata",
-        "full"="application/json;odata=fullmetadata")
-    res <- call_storage_endpoint(endpoint, "Tables", headers=list(Accept=accept), http_status_handler="pass")
-    stop_for_status(res)
-    heads <- httr::headers(res)
-    if(!is.null(heads[["x-ms-continuation-NextTableName"]]))
-        res <- call_storage_endpoint(endpoint, "Tables",
-            options=list(NextTableName=heads[["x-ms-continuation-NextTableName"]]),
-            http_status_handler="pass")
+    UseMethod("list_azure_tables")
+}
+
+#' @export
+list_azure_tables.table_endpoint <- function(endpoint, ...)
+{
+    opts <- list()
+    val <- list()
+    repeat
+    {
+        res <- call_table_endpoint(endpoint, "Tables", options=opts, http_status_handler="pass")
+        httr::stop_for_status(res, storage_error_message(res))
+        heads <- httr::headers(res)
+        res <- httr::content(res)
+
+        val <- c(val, res$value)
+        if(is.null(heads$`x-ms-continuation-NextTableName`))
+            break
+        opts$NextTableName <- heads$`x-ms-continuation-NextTableName`
+    }
+    AzureRMR::named_list(lapply(val, function(x) azure_table(endpoint, x$TableName)), "TableName")
 }
 
 
@@ -25,9 +35,7 @@ create_azure_table <- function(endpoint, ...)
 create_azure_table.table_endpoint <- function(endpoint, name, metadata=c("none", "minimal", "full"), ...)
 {
     res <- call_table_endpoint(endpoint, "Tables", body=list(TableName=name), metadata=metadata, http_verb="POST")
-    res$endpoint <- endpoint
-    class(res) <- "azure_table"
-    res
+    azure_table(endpoint, res$TableName)
 }
 
 
@@ -60,19 +68,9 @@ azure_table <- function(endpoint, ...)
 }
 
 #' @export
-azure_table.table_endpoint <- function(endpoint, name, metadata=NULL, type=NULL, id=NULL, editlink=NULL, ...)
+azure_table.table_endpoint <- function(endpoint, name, ...)
 {
-    obj <- list(
-        odata.metadata=metadata,
-        odata.type=type,
-        odata.id=id,
-        odata.editLink=editlink,
-        TableName=name,
-        endpoint=endpoint
-    )
-    obj <- obj[!sapply(obj, is.null)]
-    class(obj) <- "azure_table"
-    obj
+    structure(list(endpoint=endpoint, TableName=name), class="azure_table")
 }
 
 
