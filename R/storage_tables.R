@@ -15,13 +15,13 @@ list_azure_tables.table_endpoint <- function(endpoint, ...)
         httr::stop_for_status(res, storage_error_message(res))
         heads <- httr::headers(res)
         res <- httr::content(res)
-
         val <- c(val, res$value)
+
         if(is.null(heads$`x-ms-continuation-NextTableName`))
             break
         opts$NextTableName <- heads$`x-ms-continuation-NextTableName`
     }
-    AzureRMR::named_list(lapply(val, function(x) azure_table(endpoint, x$TableName)), "TableName")
+    AzureRMR::named_list(lapply(val, function(x) azure_table(endpoint, x$TableName)))
 }
 
 
@@ -57,7 +57,7 @@ delete_azure_table.table_endpoint <- function(endpoint, name, confirm=TRUE, ...)
 #' @export
 delete_azure_table.azure_table <- function(endpoint, ...)
 {
-    delete_azure_table(endpoint$endpoint, endpoint$TableName, ...)
+    delete_azure_table(endpoint$endpoint, endpoint$name, ...)
 }
 
 
@@ -70,7 +70,7 @@ azure_table <- function(endpoint, ...)
 #' @export
 azure_table.table_endpoint <- function(endpoint, name, ...)
 {
-    structure(list(endpoint=endpoint, TableName=name), class="azure_table")
+    structure(list(endpoint=endpoint, name=name), class="azure_table")
 }
 
 
