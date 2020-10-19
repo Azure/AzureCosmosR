@@ -16,7 +16,8 @@ Imports:
     AzureRMR (>= 2.0.0),
     AzureStor (>= 3.0.0),
     openssl,
-    httr
+    httr,
+    uuid
 Suggests:
     AzureKeyVault,
     testthat,

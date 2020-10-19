@@ -59,3 +59,26 @@ get_table_entity <- function(table, partition_key, row_key, select=NULL)
     opts <- list(`$select`=paste0(select, collapse=","))
     call_table_endpoint(table$endpoint, path, options=opts)
 }
+
+
+import_table_entities <- function(table, data, partition_key=NULL, row_key=NULL)
+{
+    force(data)
+    if(is.character(data) && jsonlite::validate(data))
+        data <- jsonlite::fromJSON(data, simplifyDataFrame=TRUE)
+
+    if(!is.null(partition_key))
+        names(data)[names(data) == partition_key] <- "PartitionKey"
+    if(!is.null(row_key))
+        names(data)[names(data) == row_key] <- "RowKey"
+
+    if(!("PartitionKey" %in% names(data)) || !("RowKey" %in% names(data)))
+        stop("Data must contain columns named 'PartitionKey' and 'RowKey'", call.=FALSE)
+
+    path <- table$name
+    ops <- lapply(seq_len(nrow(data)), function(i)
+    {
+        create_batch_operation(table$endpoint, path, body=data[i, ], http_verb="POST")
+    })
+    ops
+}

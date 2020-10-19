@@ -14,12 +14,16 @@ table_endpoint <- function(endpoint, key=NULL, token=NULL, sas=NULL,
 call_table_endpoint <- function(endpoint, path, options=list(), headers=list(), body=NULL, ...,
     metadata=c("none", "minimal", "full"))
 {
-    metadata <- match.arg(metadata)
-    accept <- switch(metadata,
-        "none"="application/json;odata=nometadata",
-        "minimal"="application/json;odata=minimalmetadata",
-        "full"="application/json;odata=fullmetadata")
-    headers <- utils::modifyList(headers, list(Accept=accept))
+    accept <- if(!is.null(metadata))
+    {
+        metadata <- match.arg(metadata)
+        switch(metadata,
+            "none"="application/json;odata=nometadata",
+            "minimal"="application/json;odata=minimalmetadata",
+            "full"="application/json;odata=fullmetadata")
+    }
+    else NULL
+    headers <- utils::modifyList(headers, list(Accept=accept, DataServiceVersion="3.0"))
 
     if(is.list(body))
     {
@@ -29,6 +33,4 @@ call_table_endpoint <- function(endpoint, path, options=list(), headers=list(), 
     }
     call_storage_endpoint(endpoint, path=path, options=options, body=body, headers=headers, ...)
 }
-
-
 
