@@ -7,6 +7,7 @@ public=list(
     headers=NULL,
     method=NULL,
     body=NULL,
+    http_version="1.1",
 
     initialize=function(endpoint, path, options=list(), headers=list(), body=NULL,
         metadata=c("none", "minimal", "full"),
@@ -25,8 +26,9 @@ public=list(
         self$endpoint <- endpoint
         self$path <- path
         self$options <- options
-        self$headers <- utils::modifyList(headers, list(Accept=accept, DataServiceVersion="3.0"))
+        self$headers <- utils::modifyList(headers, list(Accept=accept, DataServiceVersion="3.0;NetFx"))
         self$method <- http_verb
+        self$body <- body
     },
 
     serialize=function()
@@ -39,13 +41,21 @@ public=list(
             "Content-Type: application/http",
             "Content-Transfer-Encoding: binary",
             "",
-            paste0(names(self$headers), ": ", self$headers)
+            paste0(self$method, " ", httr::build_url(url), " HTTP/", self$http_version),
+            paste0(names(self$headers), ": ", self$headers),
+            if(!is.null(self$body)) "Content-Type: application/json"
         )
 
         if(is.null(self$body))
             preamble
         else if(!is.character(self$body))
-            c(preamble, "", jsonlite::toJSON(self$body, auto_unbox=TRUE, null="null"))
+        {
+            body <- jsonlite::toJSON(self$body, auto_unbox=TRUE, null="null")
+            # special-case treatment for 1-row dataframes
+            if(is.data.frame(self$body) && nrow(self$body) == 1)
+                body <- substr(body, 2, nchar(body) - 1)
+            c(preamble, "", body)
+        }
         else c(preamble, "", self$body)
     }
 ))
@@ -74,7 +84,6 @@ public=list(
 
 
 
-
 create_batch_operation <- function(endpoint, path, options=list(), headers=list(), body=NULL,
     metadata=c("none", "minimal", "full"), http_verb=c("GET", "PUT", "POST", "PATCH", "DELETE", "HEAD"))
 {
@@ -82,24 +91,28 @@ create_batch_operation <- function(endpoint, path, options=list(), headers=list(
 }
 
 
-send_batch_request <- function(endpoint, operations, ...)
+send_batch_request <- function(endpoint, operations)
 {
     # batch REST API only supports 1 changeset per batch, and is unlikely to change
-    batch_bound <- paste0("--batch_", uuid::UUIDgenerate())
-    changeset_bound <- paste0("--changeset_", uuid::UUIDgenerate())
+    batch_bound <- paste0("batch_", uuid::UUIDgenerate())
+    changeset_bound <- paste0("changeset_", uuid::UUIDgenerate())
     headers <- list(`Content-Type`=paste0("multipart/mixed; boundary=", batch_bound))
 
     batch_preamble <- c(
-        batch_bound,
-        paste0("Content-Type: multipart/mixed; boundary=", changeset_bound)
+        paste0("--", batch_bound),
+        paste0("Content-Type: multipart/mixed; boundary=", changeset_bound),
+        ""
     )
     batch_postscript <- c(
-        paste0(changeset_bound, "--"),
-        batch_bound
+        "",
+        paste0("--", changeset_bound, "--"),
+        paste0("--", batch_bound, "--")
     )
-    reqs <- lapply(requests, function(req) c(changeset_bound, req$serialize()))
-    body <- c(batch_preamble, unlist(reqs), batch_postscript)
+    serialized <- lapply(operations, function(op) c(paste0("--", changeset_bound), op$serialize()))
+    body <- paste0(c(batch_preamble, unlist(serialized), batch_postscript), collapse="\n")
+    headers$`Content-Length` <- nchar(body)
 
-    invisible(call_table_endpoint(endpoint, "$batch", headers=headers, body=paste0(body, collapse="\n"), encode="raw",
-        http_verb="POST"))
+    res <- call_table_endpoint(endpoint, "$batch", headers=headers, body=body, encode="raw",
+        http_verb="POST")
+    invisible(rawToChar(res))
 }

@@ -23,7 +23,7 @@ call_table_endpoint <- function(endpoint, path, options=list(), headers=list(), 
             "full"="application/json;odata=fullmetadata")
     }
     else NULL
-    headers <- utils::modifyList(headers, list(Accept=accept, DataServiceVersion="3.0"))
+    headers <- utils::modifyList(headers, list(Accept=accept, DataServiceVersion="3.0;NetFx"))
 
     if(is.list(body))
     {

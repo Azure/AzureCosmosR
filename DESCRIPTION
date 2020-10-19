@@ -17,11 +17,13 @@ Imports:
     AzureStor (>= 3.0.0),
     openssl,
     httr,
-    uuid
+    uuid,
+    vctrs (>= 0.3.0)
 Suggests:
     AzureKeyVault,
     testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    tibble
 Roxygen: list(markdown=TRUE)
 RoxygenNote: 7.1.1

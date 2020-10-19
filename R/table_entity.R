@@ -1,15 +1,18 @@
 #' @export
-update_table_entity <- function(table, entity, partition_key=entity$PartitionKey, row_key=entity$RowKey, etag=NULL)
+insert_table_entity <- function(table, entity)
 {
     if(is.character(entity) && jsonlite::validate(entity))
         entity <- jsonlite::fromJSON(entity, simplifyDataFrame=FALSE)
+    else if(is.data.frame(entity))
+    {
+        if(nrow(entity) == 1) # special-case treatment for 1-row dataframes
+            entity <- unclass(entity)
+        else stop("Can only insert one row at a time; use import_table_entities() to insert multiple rows")
+    }
 
-    path <- sprintf("%s(PartitionKey='%s',RowKey='%s')", table$name, partition_key, row_key)
-    headers <- if(!is.null(etag))
-        list(`If-Match`=etag)
-    else list()
-
-    res <- call_table_endpoint(table$endpoint, path, body=entity, headers=headers, http_verb="PUT",
+    check_column_names(entity)
+    headers <- list(Prefer="return-no-content")
+    res <- call_table_endpoint(table$endpoint, table$name, body=entity, headers=headers, http_verb="POST",
                                http_status_handler="pass")
     httr::stop_for_status(res, storage_error_message(res))
     invisible(httr::headers(res)$ETag)
@@ -28,7 +31,7 @@ delete_table_entity <- function(table, partition_key, row_key, etag=NULL)
 
 
 #' @export
-list_table_entities <- function(table, filter=NULL, select=NULL)
+list_table_entities <- function(table, filter=NULL, select=NULL, as_data_frame=TRUE)
 {
     path <- sprintf("%s()", table$name)
     opts <- list(
@@ -48,7 +51,11 @@ list_table_entities <- function(table, filter=NULL, select=NULL)
         opts$NextPartitionKey <- heads$`x-ms-continuation-NextPartitionKey`
         opts$NextRowKey <- heads$`x-ms-continuation-NextRowKey`
     }
-    val
+
+    # table storage allows columns to vary by row, so cannot use base::rbind
+    if(as_data_frame)
+        do.call(vctrs::vec_rbind, val)
+    else val
 }
 
 
@@ -61,9 +68,9 @@ get_table_entity <- function(table, partition_key, row_key, select=NULL)
 }
 
 
+#' @export
 import_table_entities <- function(table, data, partition_key=NULL, row_key=NULL)
 {
-    force(data)
     if(is.character(data) && jsonlite::validate(data))
         data <- jsonlite::fromJSON(data, simplifyDataFrame=TRUE)
 
@@ -72,13 +79,34 @@ import_table_entities <- function(table, data, partition_key=NULL, row_key=NULL)
     if(!is.null(row_key))
         names(data)[names(data) == row_key] <- "RowKey"
 
+    check_column_names(data)
+    endpoint <- table$endpoint
+    path <- table$name
+    headers <- list(Prefer="return-no-content")
+    res <- lapply(split(data, data$PartitionKey), function(dfpart)
+    {
+        n <- nrow(dfpart)
+        nchunks <- n %/% 100 + (n %% 100 > 0)
+        lapply(seq_len(nchunks), function(chunk)
+        {
+            rows <- seq(from=(chunk-1)*100 + 1, to=min(chunk*100, n))
+            dfchunk <- dfpart[rows, ]
+            ops <- lapply(seq_len(nrow(dfchunk)), function(i)
+                create_batch_operation(endpoint, path, body=dfchunk[i, ], headers=headers, http_verb="POST"))
+            send_batch_request(endpoint, ops)
+        })
+    })
+    invisible(unlist(res))
+}
+
+
+check_column_names <- function(data)
+{
     if(!("PartitionKey" %in% names(data)) || !("RowKey" %in% names(data)))
         stop("Data must contain columns named 'PartitionKey' and 'RowKey'", call.=FALSE)
-
-    path <- table$name
-    ops <- lapply(seq_len(nrow(data)), function(i)
-    {
-        create_batch_operation(table$endpoint, path, body=data[i, ], http_verb="POST")
-    })
-    ops
+    if(!(is.character(data$PartitionKey) || is.factor(data$PartitionKey)) ||
+       !(is.character(data$RowKey) || is.factor(data$RowKey)))
+        stop("RowKey and PartitionKey columns must be character or factor", call.=FALSE)
+    if("Timestamp" %in% names(data))
+        stop("'Timestamp' column is reserved for system use", call.=FALSE)
 }
