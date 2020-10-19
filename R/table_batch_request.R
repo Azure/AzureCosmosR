@@ -61,29 +61,6 @@ public=list(
 ))
 
 
-BatchRequest <- R6::R6Class("BatchRequest",
-
-public=list(
-    endpoint=NULL,
-    changesets=list(),
-
-    initialize=function(endpoint, changesets)
-    {
-        self$endpoint <- endpoint
-        self$changesets <- changesets
-    },
-
-    send=function()
-    {
-        batch_bound <- paste0("batch_", uuid::UUIDgenerate())
-        changeset_bound <- paste0("req_", uuid::UUIDgenerate())
-        headers <- list(`Content-Type`=paste0("multipart/mixed; boundary=", batch_bound))
-        call_table_endpoint(endpoint, "$batch", headers=headers, body=body, encode="raw", http_verb="POST")
-    }
-))
-
-
-
 create_batch_operation <- function(endpoint, path, options=list(), headers=list(), body=NULL,
     metadata=c("none", "minimal", "full"), http_verb=c("GET", "PUT", "POST", "PATCH", "DELETE", "HEAD"))
 {
