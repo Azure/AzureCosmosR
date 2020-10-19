@@ -20,7 +20,7 @@ insert_table_entity <- function(table, entity)
 
 
 #' @export
-delete_table_entity <- function(table, partition_key, row_key, etag=NULL)
+delete_table_entity <- function(table, row_key, partition_key, etag=NULL)
 {
     path <- sprintf("%s(PartitionKey='%s',RowKey='%s')", table$name, partition_key, row_key)
     if(is.null(etag))
@@ -60,16 +60,18 @@ list_table_entities <- function(table, filter=NULL, select=NULL, as_data_frame=T
 
 
 #' @export
-get_table_entity <- function(table, partition_key, row_key, select=NULL)
+get_table_entity <- function(table, row_key, partition_key, select=NULL)
 {
     path <- sprintf("%s(PartitionKey='%s',RowKey='%s')", table$name, partition_key, row_key)
-    opts <- list(`$select`=paste0(select, collapse=","))
+    opts <- if(!is.null(select))
+        list(`$select`=paste0(select, collapse=","))
+    else list()
     call_table_endpoint(table$endpoint, path, options=opts)
 }
 
 
 #' @export
-import_table_entities <- function(table, data, partition_key=NULL, row_key=NULL)
+import_table_entities <- function(table, data, row_key=NULL, partition_key=NULL)
 {
     if(is.character(data) && jsonlite::validate(data))
         data <- jsonlite::fromJSON(data, simplifyDataFrame=TRUE)
