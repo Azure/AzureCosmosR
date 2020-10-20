@@ -7,7 +7,6 @@ public=list(
     headers=NULL,
     method=NULL,
     body=NULL,
-    http_version="1.1",
 
     initialize=function(endpoint, path, options=list(), headers=list(), body=NULL,
         metadata=c("none", "minimal", "full"),
@@ -41,7 +40,7 @@ public=list(
             "Content-Type: application/http",
             "Content-Transfer-Encoding: binary",
             "",
-            paste0(self$method, " ", httr::build_url(url), " HTTP/", self$http_version),
+            paste(self$method, httr::build_url(url), "HTTP/1.1"),
             paste0(names(self$headers), ": ", self$headers),
             if(!is.null(self$body)) "Content-Type: application/json"
         )

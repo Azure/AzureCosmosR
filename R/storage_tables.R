@@ -32,9 +32,9 @@ create_azure_table <- function(endpoint, ...)
 }
 
 #' @export
-create_azure_table.table_endpoint <- function(endpoint, name, metadata=c("none", "minimal", "full"), ...)
+create_azure_table.table_endpoint <- function(endpoint, name, ...)
 {
-    res <- call_table_endpoint(endpoint, "Tables", body=list(TableName=name), metadata=metadata, http_verb="POST")
+    res <- call_table_endpoint(endpoint, "Tables", body=list(TableName=name), ..., http_verb="POST")
     azure_table(endpoint, res$TableName)
 }
 
