@@ -1,3 +1,35 @@
+#' Batch transactions for table storage
+#'
+#' @param endpoint A table storage endpoint, of class `table_endpoint`.
+#' @param path The path component of the operation.
+#' @param options A named list giving the query parameters for the operation.
+#' @param headers A named list giving any additional HTTP headers to send to the host. AzureCosmosR will handle authentication details, so you don't have to specify these here.
+#' @param body The request body for a PUT/POST/PATCH operation.
+#' @param metadata The level of ODATA metadata to include in the response.
+#' @param http_verb The HTTP verb (method) for the operation.
+#' @param operations For `do_batch_transaction`, a list of individual operations to be batched up.
+#' @param batch_status_handler For `do_batch_transaction`, what to do if one or more of the batch operations fails. The default is to signal a warning and return a list of response objects, from which the details of the failure(s) can be determined. Set this to "pass" to ignore the failure.
+#'
+#' @details
+#' Table storage supports batch transactions on entities that are in the same table and belong to the same partition group. Batch transactions are also known as _entity group transactions_.
+#'
+#' You can use `create_batch_operation` to produce an object corresponding to a single table storage operation, such as inserting, deleting or updating an entity. Multiple such objects can then be passed to `do_batch_transaction`, which will carry them out as a single atomic transaction.
+#'
+#' Note that batch transactions are subject to some limitations imposed by the REST API:
+#' - All entities subject to operations as part of the transaction must have the same `PartitionKey` value.
+#' - An entity can appear only once in the transaction, and only one operation may be performed against it.
+#' - The transaction can include at most 100 entities, and its total payload may be no more than 4 MB in size.
+#'
+#' @return
+#' `create_batch_operation` returns an object of class `batch_operation`.
+#'
+#' `do_batch_transaction` returns a list of objects of class `batch_operation_response`, representing the results of each individual operation. Each object contains elements named `status`, `headers` and `body` containing the respective parts of the response. Note that the number of returned objects may be smaller than the number of operations in the batch, if the transaction failed.
+#' @seealso
+#' [import_table_entities], which uses (multiple) batch transactions under the hood
+#'
+#' [Performing entity group transactions](https://docs.microsoft.com/en-us/rest/api/storageservices/performing-entity-group-transactions)
+#' @rdname table_batch
+#' @export
 create_batch_operation <- function(endpoint, path, options=list(), headers=list(), body=NULL,
     metadata=c("none", "minimal", "full"), http_verb=c("GET", "PUT", "POST", "PATCH", "DELETE", "HEAD"))
 {
@@ -16,7 +48,7 @@ create_batch_operation <- function(endpoint, path, options=list(), headers=list(
     obj$path <- path
     obj$options <- options
     obj$headers <- utils::modifyList(headers, list(Accept=accept, DataServiceVersion="3.0;NetFx"))
-    obj$method <- http_verb
+    obj$method <- match.arg(http_verb)
     obj$body <- body
     structure(obj, class="batch_operation")
 }
@@ -57,7 +89,9 @@ serialize_batch_operation.batch_operation <- function(object)
 }
 
 
-send_batch_request <- function(endpoint, operations, batch_status_handler=c("warn", "stop", "message", "pass"))
+#' @rdname table_batch
+#' @export
+do_batch_transaction <- function(endpoint, operations, batch_status_handler=c("warn", "stop", "message", "pass"))
 {
     # batch REST API only supports 1 changeset per batch, and is unlikely to change
     batch_bound <- paste0("batch_", uuid::UUIDgenerate())
@@ -78,7 +112,6 @@ send_batch_request <- function(endpoint, operations, batch_status_handler=c("war
     body <- paste0(c(batch_preamble, unlist(serialized), batch_postscript), collapse="\n")
     if(nchar(body) > 4194304)
         stop("Batch request too large, must be 4MB or less")
-    headers$`Content-Length` <- nchar(body)
 
     res <- call_table_endpoint(endpoint, "$batch", headers=headers, body=body, encode="raw",
         http_verb="POST")

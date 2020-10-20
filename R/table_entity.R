@@ -1,3 +1,39 @@
+#' Operations on table entities (rows)
+#'
+#' @param table A table object, of class `azure_table`.
+#' @param entity For `insert_table_entity` and `update_table_entity`, a named list giving the properties (columns) of the entity. See 'Details' below.
+#' @param data For `import_table_entities`, a data frame. See 'Details' below.
+#' @param row_key,partition_key For `get_table_entity`, `update_table_entity` and `delete_table_entity`, the row and partition key values that identify the entity to get, update or delete. For `import_table_entities`, optionally the _columns_ in the imported data to treat as the row and partition keys. These will be renamed to `RowKey` and `PartitionKey` respectively.
+#' @param etag For `update_table_entity` and `delete_table_entity`, an optional Etag value. If this is supplied, the update or delete operation will proceed only if the target entity's Etag matches this value. This ensures that an entity is only updated/deleted if it has not been modified since it was last retrieved.
+#' @param filter,select For `list_table_entities`, optional row filter and column select expressions to subset the result with. If omitted, `list_table_entities` will return all entities in the table.
+#' @param as_data_frame For `list_table_entities`, whether to return the results as a data frame, rather than a list of table rows.
+#' @param batch_status_handler For `import_table_entities`, what to do if one or more of the batch operations fails. The default is to signal a warning and return a list of response objects, from which the details of the failure(s) can be determined. Set this to "pass" to ignore the failure.
+#'
+#' @details
+#' These functions operate on rows of a table, also known as _entities_. `insert`, `get`, `update` and `delete_table_entity` operate on an individual row. `import_table_entities` bulk-inserts multiple rows of data into the table, using batch transactions. `list_table_entities` queries the table and returns multiple rows based on the `filter` and `subset` arguments.
+#'
+#' Table storage imposes the following requirements for properties (columns) of an entity:
+#' - There must be properties named `RowKey` and `PartitionKey`, which together form the entity's unique identifier.
+#' - The property `Timestamp` cannot be used (strictly speaking, it is reserved by the system).
+#' - There can be at most 255 properties per entity, although different entities can have different properties.
+#' - Table properties must be atomic (ie, they cannot be nested lists).
+#'
+#' For `insert_table_entity`, `update_table_entity` and `import_table_entities`, you can also specify JSON text representing the data to insert/update/import, instead of a list or data frame.
+#' @return
+#' `insert_table_entity` and `update_table_entity` return the Etag of the inserted/updated entity, invisibly.
+#'
+#' `get_table_entity` returns a named list of properties for the given entity.
+#'
+#' `list_table_entities` returns a data frame if `as_data_frame=TRUE`, and a list of entities (rows) otherwise.
+#'
+#' `import_table_entities` invisibly returns a named list, with one component for each value of the `PartitionKey` column. Each component contains the results of the individual operations to insert each row into the table.
+#'
+#' @seealso
+#' [azure_table], [do_batch_transaction]
+#'
+#' [Understanding the table service data model](https://docs.microsoft.com/en-us/rest/api/storageservices/understanding-the-table-service-data-model)
+#' @aliases table_entity
+#' @rdname table_entity
 #' @export
 insert_table_entity <- function(table, entity)
 {
@@ -7,7 +43,8 @@ insert_table_entity <- function(table, entity)
     {
         if(nrow(entity) == 1) # special-case treatment for 1-row dataframes
             entity <- unclass(entity)
-        else stop("Can only insert one row at a time; use import_table_entities() to insert multiple rows")
+        else stop("Can only insert one entity at a time; use import_table_entities() to insert multiple entities",
+                  call.=FALSE)
     }
 
     check_column_names(entity)
@@ -19,6 +56,32 @@ insert_table_entity <- function(table, entity)
 }
 
 
+#' @rdname table_entity
+#' @export
+update_table_entity <- function(table, entity, row_key=entity$RowKey, partition_key=entity$PartitionKey, etag=NULL)
+{
+    if(is.character(entity) && jsonlite::validate(entity))
+        entity <- jsonlite::fromJSON(entity, simplifyDataFrame=FALSE)
+    else if(is.data.frame(entity))
+    {
+        if(nrow(entity) == 1) # special-case treatment for 1-row dataframes
+            entity <- unclass(entity)
+        else stop("Can only update one entity at a time", call.=FALSE)
+    }
+
+    check_column_names(entity)
+    headers <- if(!is.null(etag))
+        list(`If-Match`=etag)
+    else list()
+    path <- sprintf("%s(PartitionKey='%s',RowKey='%s')", table$name, partition_key, row_key)
+    res <- call_table_endpoint(table$endpoint, table$name, body=entity, headers=headers, http_verb="POST",
+                               http_status_handler="pass")
+    httr::stop_for_status(res, storage_error_message(res))
+    invisible(httr::headers(res)$ETag)
+}
+
+
+#' @rdname table_entity
 #' @export
 delete_table_entity <- function(table, row_key, partition_key, etag=NULL)
 {
@@ -30,6 +93,7 @@ delete_table_entity <- function(table, row_key, partition_key, etag=NULL)
 }
 
 
+#' @rdname table_entity
 #' @export
 list_table_entities <- function(table, filter=NULL, select=NULL, as_data_frame=TRUE)
 {
@@ -59,6 +123,7 @@ list_table_entities <- function(table, filter=NULL, select=NULL, as_data_frame=T
 }
 
 
+#' @rdname table_entity
 #' @export
 get_table_entity <- function(table, row_key, partition_key, select=NULL)
 {
@@ -70,6 +135,7 @@ get_table_entity <- function(table, row_key, partition_key, select=NULL)
 }
 
 
+#' @rdname table_entity
 #' @export
 import_table_entities <- function(table, data, row_key=NULL, partition_key=NULL,
                                   batch_status_handler=c("warn", "stop", "message", "pass"))
@@ -97,7 +163,7 @@ import_table_entities <- function(table, data, row_key=NULL, partition_key=NULL,
             dfchunk <- dfpart[rows, ]
             ops <- lapply(seq_len(nrow(dfchunk)), function(i)
                 create_batch_operation(endpoint, path, body=dfchunk[i, ], headers=headers, http_verb="POST"))
-            send_batch_request(endpoint, ops, batch_status_handler)
+            do_batch_transaction(endpoint, ops, batch_status_handler)
         })
         unlist(reschunks, recursive=FALSE)
     })

@@ -16,6 +16,7 @@ Imports:
     AzureRMR (>= 2.0.0),
     AzureStor (>= 3.0.0),
     openssl,
+    jsonlite,
     httr,
     uuid,
     vctrs (>= 0.3.0)

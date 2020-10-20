@@ -46,6 +46,14 @@ call_table_endpoint(
 
 \item{metadata}{For \code{call_table_endpoint}, the level of ODATA metadata to include in the response.}
 }
+\value{
+An object of class \code{table_endpoint}, inheriting from \code{storage_endpoint}. This is the analogue of the \code{blob_endpoint}, \code{file_endpoint} and \code{adls_endpoint} classes provided by the AzureStor package.
+}
 \description{
 Table storage endpoint object, and method to call it.
+}
+\seealso{
+\link{azure_table}, \link{table_entity}
+
+\href{https://docs.microsoft.com/en-us/rest/api/storageservices/table-service-rest-api}{Table service REST API reference}
 }
