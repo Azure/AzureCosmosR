@@ -147,7 +147,7 @@ process_operation_response <- function(response, handler)
     }
 
     body <- if(!(status %in% c(204, 205)) && blanks[2] < length(response))
-        body <- response[seq(blanks[2]+1, length(response))]
+        response[seq(blanks[2]+1, length(response))]
     else NULL
 
     obj <- list(status=status, headers=headers, body=body)
