@@ -71,7 +71,8 @@ get_table_entity <- function(table, row_key, partition_key, select=NULL)
 
 
 #' @export
-import_table_entities <- function(table, data, row_key=NULL, partition_key=NULL)
+import_table_entities <- function(table, data, row_key=NULL, partition_key=NULL,
+                                  batch_status_handler=c("warn", "stop", "message", "pass"))
 {
     if(is.character(data) && jsonlite::validate(data))
         data <- jsonlite::fromJSON(data, simplifyDataFrame=TRUE)
@@ -85,20 +86,22 @@ import_table_entities <- function(table, data, row_key=NULL, partition_key=NULL)
     endpoint <- table$endpoint
     path <- table$name
     headers <- list(Prefer="return-no-content")
+    batch_status_handler <- match.arg(batch_status_handler)
     res <- lapply(split(data, data$PartitionKey), function(dfpart)
     {
         n <- nrow(dfpart)
         nchunks <- n %/% 100 + (n %% 100 > 0)
-        lapply(seq_len(nchunks), function(chunk)
+        reschunks <- lapply(seq_len(nchunks), function(chunk)
         {
             rows <- seq(from=(chunk-1)*100 + 1, to=min(chunk*100, n))
             dfchunk <- dfpart[rows, ]
             ops <- lapply(seq_len(nrow(dfchunk)), function(i)
                 create_batch_operation(endpoint, path, body=dfchunk[i, ], headers=headers, http_verb="POST"))
-            send_batch_request(endpoint, ops)
+            send_batch_request(endpoint, ops, batch_status_handler)
         })
+        unlist(reschunks, recursive=FALSE)
     })
-    invisible(unlist(res))
+    invisible(res)
 }
 
 

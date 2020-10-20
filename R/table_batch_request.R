@@ -67,7 +67,7 @@ create_batch_operation <- function(endpoint, path, options=list(), headers=list(
 }
 
 
-send_batch_request <- function(endpoint, operations)
+send_batch_request <- function(endpoint, operations, batch_status_handler=c("warn", "stop", "message", "pass"))
 {
     # batch REST API only supports 1 changeset per batch, and is unlikely to change
     batch_bound <- paste0("batch_", uuid::UUIDgenerate())
@@ -90,5 +90,75 @@ send_batch_request <- function(endpoint, operations)
 
     res <- call_table_endpoint(endpoint, "$batch", headers=headers, body=body, encode="raw",
         http_verb="POST")
-    invisible(rawToChar(res))
+    process_batch_response(res, match.arg(batch_status_handler))
 }
+
+
+process_batch_response <- function(response, batch_status_handler)
+{
+    # assume response (including body) is always text
+    response <- rawToChar(response)
+    lines <- strsplit(response, "\r?\n\r?")[[1]]
+    batch_bound <- lines[1]
+    changeset_bound <- sub("^.+boundary=(.+)$", "\\1", lines[2])
+    n <- length(lines)
+
+    # assume only 1 changeset
+    batch_end <- grepl(batch_bound, lines[n])
+    if(!any(batch_end))
+        stop("Invalid batch response, batch boundary not found", call.=FALSE)
+    changeset_end <- grepl(changeset_bound, lines[n-1])
+    if(!any(changeset_end))
+        stop("Invalid batch response, changeset boundary not found", call.=FALSE)
+
+    lines <- lines[3:(n-3)]
+    op_bounds <- grep(changeset_bound, lines)
+    op_responses <- Map(
+        function(start, end) process_operation_response(lines[seq(start, end)], batch_status_handler),
+        op_bounds + 1,
+        c(op_bounds[-1], length(lines))
+    )
+    op_responses
+}
+
+
+process_operation_response <- function(response, handler)
+{
+    blanks <- which(response == "")
+    if(length(blanks) < 2)
+        stop("Invalid operation response", call.=FALSE)
+
+    headers <- response[seq(blanks[1]+1, blanks[2]-1)]  # skip over http stuff
+
+    status <- as.numeric(sub("^.+ (\\d{3}) .+$", "\\1", headers[1]))
+    headers <- strsplit(headers[-1], ": ")
+    names(headers) <- sapply(headers, `[[`, 1)
+    headers <- sapply(headers, `[[`, 2, simplify=FALSE)
+    class(headers) <- c("insensitive", "list")
+
+    if(status >= 300)
+    {
+        if(handler == "stop")
+            stop(httr::http_condition(status, "error"))
+        else if(handler == "warn")
+            warning(httr::http_condition(status, "warning"))
+        else if(handler == "message")
+            message(httr::http_condition(status, "message"))
+    }
+
+    body <- if(!(status %in% c(204, 205)) && blanks[2] < length(response))
+        body <- response[seq(blanks[2]+1, length(response))]
+    else NULL
+
+    obj <- list(status=status, headers=headers, body=body)
+    class(obj) <- "batch_operation_response"
+    obj
+}
+
+#' @export
+print.batch_operation_response <- function(x, ...)
+{
+    cat("<Table storage batch operation response>\n")
+    invisible(x)
+}
+
