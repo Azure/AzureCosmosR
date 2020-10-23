@@ -21,9 +21,14 @@ print.cosmos_endpoint <- function(x, ...)
 
 
 #' @export
-call_cosmos_endpoint <- function(endpoint, path, resource_type, options=list(), headers=list(), body=NULL,
-    http_verb=c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"),
-    num_retries=10, ...)
+call_cosmos_endpoint <- function(endpoint, ...)
+{
+    UseMethod("call_cosmos_endpoint")
+}
+
+#' @export
+call_cosmos_endpoint.cosmos_endpoint <- function(endpoint, path, resource_type, options=list(), headers=list(),
+    body=NULL, http_verb=c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"), num_retries=10, ...)
 {
     url <- endpoint$host
     url$path <- gsub("/{2,}", "/", URLencode(enc2utf8(path)))
