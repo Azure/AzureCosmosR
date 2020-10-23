@@ -2,7 +2,7 @@ Package: AzureCosmosR
 Title: Interface to the 'Azure CosmosDB' and table storage services
 Version: 0.0.1
 Authors@R: c(
-    person("Hong", "Ooi", , "hongooi@microsoft.com", role = c("aut", "cre")),
+    person("Hong", "Ooi", , "hongooi73@gmail.com", role = c("aut", "cre")),
     person("Microsoft", role="cph")
     )
 Description: An interface to 'Azure CosmosDB' and table storage: <https://azure.microsoft.com/en-us/services/cosmos-db/>, <https://azure.microsoft.com/en-us/services/storage/tables/>. On the admin side, 'AzureCosmosR' provides the ability to create and manage 'CosmosDB' instances in Microsoft's 'Azure' cloud. On the client side, it provides functionality for reading and writing data stored in 'CosmosDB' as well as in table storage. Part of the 'AzureR' family of packages.
@@ -14,17 +14,12 @@ Depends:
 Imports: 
     utils,
     AzureRMR (>= 2.0.0),
-    AzureStor (>= 3.0.0),
     openssl,
     jsonlite,
-    httr,
-    uuid,
-    vctrs (>= 0.3.0)
+    httr
 Suggests:
-    AzureKeyVault,
     testthat,
     knitr,
-    rmarkdown,
-    tibble
+    rmarkdown
 Roxygen: list(markdown=TRUE)
 RoxygenNote: 7.1.1
