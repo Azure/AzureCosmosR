@@ -1,7 +1,8 @@
 #' @export
 get_database <- function(endpoint, name)
 {
-    res <- call_cosmos_endpoint(endpoint, file.path("dbs", name), "dbs")
+    path <- file.path("dbs", name)
+    res <- call_cosmos_endpoint(endpoint, path, "dbs", path)
     obj <- process_cosmos_response(res)
     class(obj) <- "cosmos_database"
     obj$endpoint <- endpoint
@@ -19,17 +20,19 @@ print.cosmos_database <- function(x, ...)
 }
 
 #' @export
-do_database_op <- function(database, ...)
+do_cosmos_op <- function(object, ...)
 {
-    UseMethod("do_database_op")
+    UseMethod("do_cosmos_op")
 }
 
 #' @export
-do_database_op.cosmos_database <- function(database, operation="", ...)
+do_cosmos_op.cosmos_database <- function(object, path="", resource_type="dbs", resource_link, ...)
 {
-    operation <- if(nchar(operation) > 0)
-        file.path("dbs", database$id, operation)
-    else file.path("dbs", database$id)
-    call_cosmos_endpoint(database$endpoint, operation, ...)
+    if(missing(resource_link))
+        resource_link <- file.path("dbs", object$database$id, "colls", object$id)
+    path <- if(nchar(path) > 0)
+        file.path("dbs", object$id, path)
+    else file.path("dbs", object$id)
+    call_cosmos_endpoint(object$endpoint, path, resource_type, resource_link, ...)
 }
 

@@ -27,9 +27,11 @@ call_cosmos_endpoint <- function(endpoint, ...)
 }
 
 #' @export
-call_cosmos_endpoint.cosmos_endpoint <- function(endpoint, path, resource_type, options=list(), headers=list(),
-    body=NULL, http_verb=c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"), num_retries=10, ...)
+call_cosmos_endpoint.cosmos_endpoint <- function(endpoint, path, resource_type, resource_link,
+    options=list(), headers=list(), body=NULL,
+    http_verb=c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"), num_retries=10, ...)
 {
+    print(resource_link)
     url <- endpoint$host
     url$path <- gsub("/{2,}", "/", URLencode(enc2utf8(path)))
     if(!is_empty(options))
@@ -45,7 +47,7 @@ call_cosmos_endpoint.cosmos_endpoint <- function(endpoint, path, resource_type, 
             endpoint$key,
             http_verb,
             resource_type,
-            path,
+            resource_link,
             now
         )
         response <- tryCatch(httr::VERB(http_verb, url, do.call(httr::add_headers, headers), body=body, ...),
@@ -83,7 +85,8 @@ retry_transfer.response <- function(response)
 
 #' @export
 process_cosmos_response <- function(response, http_status_handler=c("stop", "warn", "message", "pass"),
-    return_headers=(response$request$method == "HEAD"))
+    return_headers=(response$request$method == "HEAD"),
+    simplify=TRUE)
 {
     http_status_handler <- match.arg(http_status_handler)
     if(http_status_handler == "pass")
@@ -95,7 +98,7 @@ process_cosmos_response <- function(response, http_status_handler=c("stop", "war
     if(return_headers)
         return(unclass(httr::headers(response)))
 
-    httr::content(response, simplifyVector=TRUE)
+    httr::content(response, simplifyVector=TRUE, simplifyDataFrame=simplify)
 }
 
 cosmos_error_message <- function(response)
