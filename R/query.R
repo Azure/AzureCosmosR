@@ -1,5 +1,5 @@
 #' @export
-run_query <- function(container, query, parameters=list(), cross_partition=TRUE, partition_key=NULL,
+query_documents <- function(container, query, parameters=list(), cross_partition=TRUE, partition_key=NULL,
     as_data_frame=TRUE, metadata=FALSE, headers=list(), ...)
 {
     headers <- utils::modifyList(headers, list(`Content-Type`="application/query+json"))
@@ -10,21 +10,6 @@ run_query <- function(container, query, parameters=list(), cross_partition=TRUE,
 
     body <- list(query=query, parameters=make_parameter_list(parameters))
     res <- do_cosmos_op(container, "docs", "docs", headers=headers, body=body, encode="json", http_verb="POST", ...)
-
-    if(inherits(res, "response"))
-        get_docs(res, as_data_frame, metadata, ...)
-    else do.call(vctrs::vec_rbind, lapply(res, get_docs, as_data_frame=as_data_frame, metadata=metadata, ...))
-}
-
-
-#' @export
-list_documents <- function(container, partition_key=NULL, as_data_frame=TRUE, metadata=FALSE, headers=list(), ...)
-{
-    headers <- utils::modifyList(headers, list(`Content-Type`="application/query+json"))
-    if(!is.null(partition_key))
-        headers$`x-ms-documentdb-partitionkey` <- jsonlite::toJSON(partition_key)
-
-    res <- do_cosmos_op(container, "docs", "docs", headers=headers, ...)
 
     if(inherits(res, "response"))
         get_docs(res, as_data_frame, metadata, ...)

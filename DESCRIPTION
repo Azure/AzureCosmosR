@@ -17,6 +17,7 @@ Imports:
     openssl,
     jsonlite,
     httr,
+    uuid,
     vctrs (>= 0.3.0)
 Suggests:
     testthat,
