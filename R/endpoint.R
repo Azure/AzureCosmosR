@@ -21,49 +21,26 @@ print.cosmos_endpoint <- function(x, ...)
 
 
 #' @export
-call_cosmos_endpoint <- function(endpoint, ...)
+do_cosmos_op <- function(object, ...)
 {
-    UseMethod("call_cosmos_endpoint")
+    UseMethod("do_cosmos_op")
 }
 
 #' @export
-call_cosmos_endpoint.cosmos_endpoint <- function(endpoint, path, resource_type, resource_link,
-    options=list(), headers=list(), body=NULL,
-    http_verb=c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"), num_retries=10,
-    do_continuations=TRUE, ...)
+do_cosmos_op.cosmos_endpoint <- function(object, path, resource_type, resource_link,
+    options=list(), headers=list(), body=NULL, do_continuations=TRUE, ...)
 {
-    url <- endpoint$host
+    headers$`x-ms-version` <- object$api_version
+    url <- object$host
     url$path <- gsub("/{2,}", "/", URLencode(enc2utf8(path)))
-    if(!is_empty(options))
+    if(!AzureRMR::is_empty(options))
         url$query <- options
-
-    headers$`x-ms-version` <- endpoint$api_version
-    http_verb <- match.arg(http_verb)
 
     # repeat until no more continuations
     reslst <- list()
     repeat
     {
-        for(r in seq_len(num_retries))
-        {
-            now <- httr::http_date(Sys.time())
-            headers$`x-ms-date` <- now
-            headers$Authorization <- sign_cosmos_request(
-                endpoint$key,
-                http_verb,
-                resource_type,
-                resource_link,
-                now
-            )
-            response <- tryCatch(httr::VERB(http_verb, url, do.call(httr::add_headers, headers), body=body, ...),
-                                error=function(e) e)
-            if(!retry_transfer(response))
-                break
-            if(inherits(response, "response"))
-                delay <- headers(response)$`x-ms-retry-after-ms`
-            delay <- if(!is.null(delay)) as.numeric(delay)/1000 else 1
-            Sys.sleep(delay)
-        }
+        response <- call_cosmos_endpoint(url, object$key, resource_type, resource_link, headers, body, ...)
         if(inherits(response, "error"))
             stop(response)
 
@@ -74,7 +51,7 @@ call_cosmos_endpoint.cosmos_endpoint <- function(endpoint, path, resource_type, 
         else
         {
             if(!is.null(response_headers$`x-ms-continuation`))
-                attr(response, "x-ms-continuation" <- response_headers$`x-ms-continuation`)
+                attr(reslst[[1]], "x-ms-continuation" <- response_headers$`x-ms-continuation`)
             break
         }
     }
@@ -82,6 +59,38 @@ call_cosmos_endpoint.cosmos_endpoint <- function(endpoint, path, resource_type, 
     if(length(reslst) == 1)
         reslst[[1]]
     else reslst
+}
+
+
+call_cosmos_endpoint <- function(url, key, resource_type, resource_link, headers=list(), body=NULL,
+    http_verb=c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"), num_retries=10,
+    ...)
+{
+    http_verb <- match.arg(http_verb)
+    for(r in seq_len(num_retries))
+    {
+        now <- httr::http_date(Sys.time())
+        headers$`x-ms-date` <- now
+        headers$Authorization <- sign_cosmos_request(
+            key,
+            http_verb,
+            resource_type,
+            resource_link,
+            now
+        )
+        response <- tryCatch(httr::VERB(http_verb, url, do.call(httr::add_headers, headers), body=body, ...),
+                            error=function(e) e)
+        if(!retry_transfer(response))
+            break
+        if(inherits(response, "response"))
+            delay <- headers(response)$`x-ms-retry-after-ms`
+        delay <- if(!is.null(delay)) as.numeric(delay)/1000 else 1
+        Sys.sleep(delay)
+    }
+    if(inherits(response, "error"))
+        stop(response)
+
+    response
 }
 
 retry_transfer <- function(response)
@@ -105,7 +114,7 @@ retry_transfer.response <- function(response)
 #' @export
 process_cosmos_response <- function(response, http_status_handler=c("stop", "warn", "message", "pass"),
     return_headers=(response$request$method == "HEAD"),
-    simplify=TRUE)
+    simplify=TRUE, ...)
 {
     http_status_handler <- match.arg(http_status_handler)
     if(http_status_handler == "pass")
