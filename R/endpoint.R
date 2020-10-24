@@ -29,9 +29,9 @@ call_cosmos_endpoint <- function(endpoint, ...)
 #' @export
 call_cosmos_endpoint.cosmos_endpoint <- function(endpoint, path, resource_type, resource_link,
     options=list(), headers=list(), body=NULL,
-    http_verb=c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"), num_retries=10, ...)
+    http_verb=c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"), num_retries=10,
+    do_continuations=TRUE, ...)
 {
-    print(resource_link)
     url <- endpoint$host
     url$path <- gsub("/{2,}", "/", URLencode(enc2utf8(path)))
     if(!is_empty(options))
@@ -39,30 +39,49 @@ call_cosmos_endpoint.cosmos_endpoint <- function(endpoint, path, resource_type, 
 
     headers$`x-ms-version` <- endpoint$api_version
     http_verb <- match.arg(http_verb)
-    for(r in seq_len(num_retries))
-    {
-        now <- httr::http_date(Sys.time())
-        headers$`x-ms-date` <- now
-        headers$Authorization <- sign_cosmos_request(
-            endpoint$key,
-            http_verb,
-            resource_type,
-            resource_link,
-            now
-        )
-        response <- tryCatch(httr::VERB(http_verb, url, do.call(httr::add_headers, headers), body=body, ...),
-                             error=function(e) e)
-        if(!retry_transfer(response))
-            break
-        if(inherits(response, "response"))
-            delay <- headers(response)$`x-ms-retry-after-ms`
-        delay <- if(!is.null(delay)) as.numeric(delay)/1000 else 1
-        Sys.sleep(delay)
-    }
-    if(inherits(response, "error"))
-        stop(response)
 
-    response
+    # repeat until no more continuations
+    reslst <- list()
+    repeat
+    {
+        for(r in seq_len(num_retries))
+        {
+            now <- httr::http_date(Sys.time())
+            headers$`x-ms-date` <- now
+            headers$Authorization <- sign_cosmos_request(
+                endpoint$key,
+                http_verb,
+                resource_type,
+                resource_link,
+                now
+            )
+            response <- tryCatch(httr::VERB(http_verb, url, do.call(httr::add_headers, headers), body=body, ...),
+                                error=function(e) e)
+            if(!retry_transfer(response))
+                break
+            if(inherits(response, "response"))
+                delay <- headers(response)$`x-ms-retry-after-ms`
+            delay <- if(!is.null(delay)) as.numeric(delay)/1000 else 1
+            Sys.sleep(delay)
+        }
+        if(inherits(response, "error"))
+            stop(response)
+
+        reslst <- c(reslst, list(response))
+        response_headers <- httr::headers(response)
+        if(do_continuations && !is.null(response_headers$`x-ms-continuation`))
+            headers$`x-ms-continuation` <- response_headers$`x-ms-continuation`
+        else
+        {
+            if(!is.null(response_headers$`x-ms-continuation`))
+                attr(response, "x-ms-continuation" <- response_headers$`x-ms-continuation`)
+            break
+        }
+    }
+
+    if(length(reslst) == 1)
+        reslst[[1]]
+    else reslst
 }
 
 retry_transfer <- function(response)
