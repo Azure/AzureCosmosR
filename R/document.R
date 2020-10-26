@@ -99,3 +99,21 @@ print.cosmos_document <- function(x, ...)
     cat("Cosmos DB document '", x$data$id, "'\n", sep="")
     invisible(x)
 }
+
+
+#' @export
+do_cosmos_op.cosmos_document <- function(object, path="", resource_type="docs", resource_link="", headers=list(), ...)
+{
+    full_path <- full_reslink <-  file.path("dbs", object$container$database$id,
+        "colls", object$container$id, "docs", object$data$id)
+    if(nchar(path) > 0)
+        full_path <- file.path(full_path, path)
+    if(nchar(resource_link) > 0)
+        full_reslink <- file.path(full_reslink, resource_link)
+
+    partition_key <- sub("^/", "", object$container$partitionKey$paths)
+    headers$`x-ms-documentdb-partitionkey` <- jsonlite::toJSON(object$data[[partition_key]])
+    call_cosmos_endpoint(object$container$database$endpoint, full_path, resource_type, full_reslink, headers=headers,
+        ...)
+}
+
