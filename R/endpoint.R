@@ -27,11 +27,18 @@ do_cosmos_op <- function(object, ...)
 }
 
 #' @export
-do_cosmos_op.cosmos_endpoint <- function(object, path, resource_type, resource_link,
+do_cosmos_op.cosmos_endpoint <- function(object, ...)
+{
+    call_cosmos_endpoint(object, ...)
+}
+
+
+#' @export
+call_cosmos_endpoint <- function(endpoint, path, resource_type, resource_link,
     options=list(), headers=list(), body=NULL, do_continuations=TRUE, ...)
 {
-    headers$`x-ms-version` <- object$api_version
-    url <- object$host
+    headers$`x-ms-version` <- endpoint$api_version
+    url <- endpoint$host
     url$path <- gsub("/{2,}", "/", URLencode(enc2utf8(path)))
     if(!AzureRMR::is_empty(options))
         url$query <- options
@@ -40,7 +47,7 @@ do_cosmos_op.cosmos_endpoint <- function(object, path, resource_type, resource_l
     reslst <- list()
     repeat
     {
-        response <- call_cosmos_endpoint(url, object$key, resource_type, resource_link, headers, body, ...)
+        response <- do_request(url, endpoint$key, resource_type, resource_link, headers, body, ...)
         if(inherits(response, "error"))
             stop(response)
 
@@ -62,7 +69,7 @@ do_cosmos_op.cosmos_endpoint <- function(object, path, resource_type, resource_l
 }
 
 
-call_cosmos_endpoint <- function(url, key, resource_type, resource_link, headers=list(), body=NULL,
+do_request <- function(url, key, resource_type, resource_link, headers=list(), body=NULL,
     http_verb=c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"), num_retries=10,
     ...)
 {
@@ -112,9 +119,14 @@ retry_transfer.response <- function(response)
 
 
 #' @export
-process_cosmos_response <- function(response, http_status_handler=c("stop", "warn", "message", "pass"),
-    return_headers=(response$request$method == "HEAD"),
-    simplify=TRUE, ...)
+process_cosmos_response <- function(response, ...)
+{
+    UseMethod("process_cosmos_response")
+}
+
+#' @export
+process_cosmos_response.response <- function(response, http_status_handler=c("stop", "warn", "message", "pass"),
+    return_headers=NULL, simplify=FALSE, simplifyVector=TRUE, simplifyDataFrame=FALSE, ...)
 {
     http_status_handler <- match.arg(http_status_handler)
     if(http_status_handler == "pass")
@@ -122,12 +134,34 @@ process_cosmos_response <- function(response, http_status_handler=c("stop", "war
 
     handler <- get(paste0(http_status_handler, "_for_status"), getNamespace("httr"))
     handler(response, cosmos_error_message(response))
+    if(is.null(return_headers))
+        return_headers <- response$request$method == "HEAD"
 
     if(return_headers)
-        return(unclass(httr::headers(response)))
-
-    httr::content(response, simplifyVector=TRUE, simplifyDataFrame=simplify)
+        unclass(httr::headers(response))
+    else httr::content(response, simplifyVector=simplifyVector, simplifyDataFrame=simplifyDataFrame, ...)
 }
+
+
+#' @export
+process_cosmos_response.list <- function(response, http_status_handler=c("stop", "warn", "message", "pass"),
+    return_headers=NULL, simplifyVector=TRUE, simplifyDataFrame=FALSE, ...)
+{
+    if(!inherits(response[[1]], "response"))
+        stop("Expecting a list of response objects", call.=FALSE)
+
+    http_status_handler <- match.arg(http_status_handler)
+    if(http_status_handler == "pass")
+        return(response)
+
+    lapply(response, process_cosmos_response,
+        http_status_handler=http_status_handler,
+        return_headers=return_headers,
+        simplifyVector=simplifyVector,
+        simplifyDataFrame=simplifyDataFrame,
+        ...)
+}
+
 
 cosmos_error_message <- function(response)
 {

@@ -94,12 +94,11 @@ print.cosmos_database <- function(x, ...)
 #' @export
 do_cosmos_op.cosmos_database <- function(object, path="", resource_type="dbs", resource_link="", ...)
 {
-    path <- if(nchar(path) > 0)
-        file.path("dbs", object$id, path)
-    else file.path("dbs", object$id)
-    resource_link <- if(nchar(resource_link) > 0)
-        file.path("dbs", object$id, resource_link)
-    else file.path("dbs", object$id)
-    do_cosmos_op(object$endpoint, path, resource_type, resource_link, ...)
+    full_path <- full_reslink <-  file.path("dbs", object$id)
+    if(nchar(path) > 0)
+        full_path <- file.path(full_path, path)
+    if(nchar(resource_link) > 0)
+        full_reslink <- file.path(full_reslink, resource_link)
+    call_cosmos_endpoint(object$endpoint, full_path, resource_type, full_reslink, ...)
 }
 

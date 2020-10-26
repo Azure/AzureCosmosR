@@ -10,10 +10,7 @@ query_documents <- function(container, query, parameters=list(), cross_partition
 
     body <- list(query=query, parameters=make_parameter_list(parameters))
     res <- do_cosmos_op(container, "docs", "docs", headers=headers, body=body, encode="json", http_verb="POST", ...)
-
-    if(inherits(res, "response"))
-        get_docs(res, as_data_frame, metadata, ...)
-    else do.call(vctrs::vec_rbind, lapply(res, get_docs, as_data_frame=as_data_frame, metadata=metadata, ...))
+    get_docs(res, as_data_frame, metadata, container, ...)
 }
 
 
@@ -26,12 +23,29 @@ make_parameter_list <- function(parlist)
 }
 
 
-get_docs <- function(response, as_data_frame, metadata, ...)
+get_docs <- function(response, as_data_frame, metadata, container, ...)
 {
-    docs <- process_cosmos_response(response, simplify=as_data_frame, ...)$Documents
-    if(as_data_frame && AzureRMR::is_empty(docs))
-        return(data.frame())
-    if(as_data_frame && !metadata)
-        docs[c("id", "_rid", "_self", "_etag", "_attachments", "_ts")] <- NULL
-    docs
+    docs <- process_cosmos_response(response, simplifyVector=TRUE, simplifyDataFrame=as_data_frame, ...)
+
+    if(as_data_frame)
+    {
+        docs <- if(inherits(response, "response"))
+            docs$Documents
+        else do.call(vctrs::vec_rbind, lapply(docs, `[[`, "Documents"))
+
+        if(AzureRMR::is_empty(docs))
+            return(data.frame())
+
+        if(!metadata)
+            docs[c("id", "_rid", "_self", "_etag", "_attachments", "_ts")] <- NULL
+        return(docs)
+    }
+    else
+    {
+        if(!inherits(response, "response"))
+            docs <- unlist(lapply(docs, `[[`, "Documents"), recursive=FALSE, use.names=FALSE)
+
+        return(lapply(docs$Documents, function(doc)
+            structure(list(container=container, data=doc), class="cosmos_document")))
+    }
 }

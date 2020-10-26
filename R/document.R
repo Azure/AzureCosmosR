@@ -14,7 +14,7 @@ get_document.cosmos_container <- function(container, id, partition_key, metadata
     doc <- process_cosmos_response(res, simplify=FALSE)
     if(!metadata)
         doc[c("id", "_rid", "_self", "_etag", "_attachments", "_ts")] <- NULL
-    doc
+    structure(list(container=container, data=doc), class="cosmos_document")
 }
 
 
@@ -25,25 +25,26 @@ create_document <- function(container, ...)
 }
 
 #' @export
-create_document.cosmos_container <- function(container, properties, headers=list(), ...)
+create_document.cosmos_container <- function(container, data, headers=list(), ...)
 {
-    if(is.character(properties) && jsonlite::validate(properties))
-        properties <- jsonlite::fromJSON(properties)
+    if(is.character(data) && jsonlite::validate(data))
+        data <- jsonlite::fromJSON(data)
 
     # assume only 1 partition key at most
     if(!is.null(container$partitionKey))
     {
         partition_key <- sub("^/", "", container$partitionKey$paths)
-        if(is.null(properties[[partition_key]]))
-            stop("Partition key not found in document properties", call.=FALSE)
-        headers$`x-ms-documentdb-partitionkey` <- jsonlite::toJSON(properties[[partition_key]])
+        if(is.null(data[[partition_key]]))
+            stop("Partition key not found in document data", call.=FALSE)
+        headers$`x-ms-documentdb-partitionkey` <- jsonlite::toJSON(data[[partition_key]])
     }
-    if(is.null(properties$id))
-        properties$id <- uuid::UUIDgenerate()
-    properties <- jsonlite::toJSON(properties, auto_unbox=TRUE, null="null")
+    if(is.null(data$id))
+        data$id <- uuid::UUIDgenerate()
+    data <- jsonlite::toJSON(data, auto_unbox=TRUE, null="null")
 
-    res <- do_cosmos_op(container, "docs", "docs", "", headers=headers, body=properties, http_verb="POST", ...)
-    invisible(process_cosmos_response(res))
+    res <- do_cosmos_op(container, "docs", "docs", "", headers=headers, body=data, http_verb="POST", ...)
+    obj <- process_cosmos_response(res)
+    invisible(structure(list(container=container, data=obj), class="cosmos_document"))
 }
 
 
@@ -54,7 +55,7 @@ list_documents <- function(container, ...)
 }
 
 #' @export
-list_documents.cosmos_container <- function(container, partition_key=NULL, as_data_frame=FALSE, metadata=FALSE,
+list_documents.cosmos_container <- function(container, partition_key=NULL, as_data_frame=FALSE, metadata=TRUE,
     headers=list(), ...)
 {
     headers <- utils::modifyList(headers, list(`Content-Type`="application/query+json"))
@@ -62,9 +63,7 @@ list_documents.cosmos_container <- function(container, partition_key=NULL, as_da
         headers$`x-ms-documentdb-partitionkey` <- jsonlite::toJSON(partition_key)
 
     res <- do_cosmos_op(container, "docs", "docs", headers=headers, ...)
-    if(inherits(res, "response"))
-        get_docs(res, as_data_frame, metadata, ...)
-    else do.call(vctrs::vec_rbind, lapply(res, get_docs, as_data_frame=as_data_frame, metadata=metadata, ...))
+    get_docs(res, as_data_frame, metadata, container, ...)
 }
 
 
@@ -81,8 +80,22 @@ delete_document.cosmos_container <- function(container, id, partition_key, heade
         return(invisible(NULL))
 
     path <- file.path("docs", id)
+    partition_key <- sub("^/", "", partition_key)
     headers$`x-ms-documentdb-partitionkey` <- jsonlite::toJSON(partition_key)
     res <- do_cosmos_op(container, path, "docs", path, headers=headers, http_verb="DELETE", ...)
     invisible(process_cosmos_response(res, ...))
 }
 
+#' @export
+delete_document.cosmos_document <- function(container, ...)
+{
+    delete_document(container$container, container$data$id, container$container$partitionKey$paths, ...)
+}
+
+
+#' @export
+print.cosmos_document <- function(x, ...)
+{
+    cat("Cosmos DB document '", x$data$id, "'\n", sep="")
+    invisible(x)
+}
