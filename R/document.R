@@ -80,7 +80,6 @@ delete_document.cosmos_container <- function(container, id, partition_key, heade
         return(invisible(NULL))
 
     path <- file.path("docs", id)
-    partition_key <- sub("^/", "", partition_key)
     headers$`x-ms-documentdb-partitionkey` <- jsonlite::toJSON(partition_key)
     res <- do_cosmos_op(container, path, "docs", path, headers=headers, http_verb="DELETE", ...)
     invisible(process_cosmos_response(res, ...))
@@ -89,7 +88,8 @@ delete_document.cosmos_container <- function(container, id, partition_key, heade
 #' @export
 delete_document.cosmos_document <- function(container, ...)
 {
-    delete_document(container$container, container$data$id, container$container$partitionKey$paths, ...)
+    partition_key <- sub("^/", "", container$container$partitionKey$paths)
+    delete_document(container$container, container$data$id, container$data[[partition_key]], ...)
 }
 
 
