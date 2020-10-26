@@ -12,6 +12,7 @@ list_attachments.cosmos_document <- function(document, ...)
     atts <- if(inherits(res, "response"))
         process_cosmos_response(res, ...)$Attachments
     else lapply(process_cosmos_response(res, ...), `[[`, "Attachments")
+    atts
 }
 
 
@@ -28,6 +29,10 @@ create_attachment.cosmos_document <- function(document, file, content_type, id=N
     if((inherits(file, "connection") && !inherits(file, "url")) ||
        (is.character(file) && length(file) == 1 && file.exists(file)))
     {
+        if(is.character(file))
+            file <- file(file, open="rb")
+
+        on.exit(close(file))
         body <- raw(0)
         repeat
         {
