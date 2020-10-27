@@ -7,8 +7,7 @@ list_attachments <- function(document, ...)
 #' @export
 list_attachments.cosmos_document <- function(document, ...)
 {
-    path <- "attachments"
-    res <- do_cosmos_op(document, path, "attachments", "", ...)
+    res <- do_cosmos_op(document, "attachments", "attachments", "", ...)
     atts <- if(inherits(res, "response"))
         process_cosmos_response(res)$Attachments
     else lapply(process_cosmos_response(res), `[[`, "Attachments")
@@ -45,6 +44,8 @@ create_attachment.cosmos_document <- function(document, file, content_type, id=N
     }
     else
     {
+        if(inherits(file, "url"))
+            file <- summary(file)$description
         if(is.null(id))
             id <- uuid::UUIDgenerate()
         body <- jsonlite::toJSON(list(
@@ -66,19 +67,25 @@ download_attachment <- function(attachment, ...)
 }
 
 #' @export
-download_attachment.cosmos_attachment <- function(attachment, destfile, overwrite=FALSE, ...)
+download_attachment.cosmos_attachment <- function(attachment, destfile, options=list(), headers=list(),
+    overwrite=FALSE, ...)
 {
-    key <- attachment$document$container$database$endpoint$key
-    reslink <- tolower(attachment$`_rid`)
-    now <- Sys.time()
-    sig <- sign_cosmos_request(key, "GET", "media", reslink, now)
-    headers <- list(
-        Authorization=sig,
-        `x-ms-date`=httr::http_date(now),
-        `x-ms-version`=attachment$document$container$database$endpoint$api_version
-    )
-    url <- attachment$document$container$database$endpoint$host
-    url$path <- attachment$media
+    url <- httr::parse_url(attachment$media)
+    if(is.null(url$scheme))  # attachment is hosted in Cosmos DB
+    {
+        key <- attachment$document$container$database$endpoint$key
+        reslink <- tolower(attachment$`_rid`)
+        now <- httr::http_date(Sys.time())
+        sig <- sign_cosmos_request(key, "GET", "media", reslink, now)
+        headers <- utils::modifyList(headers, list(
+            Authorization=sig,
+            `x-ms-date`=now,
+            `x-ms-version`=attachment$document$container$database$endpoint$api_version
+        ))
+        url <- attachment$document$container$database$endpoint$host
+        url$path <- attachment$media
+    }
+    else url$query <- options
 
     httr::GET(url, do.call(httr::add_headers, headers),
               config=httr::write_disk(destfile, overwrite=overwrite), httr::progress())

@@ -16,10 +16,10 @@ query_documents <- function(container, query, parameters=list(), cross_partition
 
 make_parameter_list <- function(parlist)
 {
-    nams <- names(parlist)
-    noatsign <- !grepl("^@", nams)
-    nams[noatsign] <- paste0("@", nams[noatsign])
-    Map(function(n, v) c(name=n, value=v), nams, parlist, USE.NAMES=FALSE)
+    parnames <- names(parlist)
+    noatsign <- substr(parnames, 1, 1) != "@"
+    parnames[noatsign] <- paste0("@", parnames[noatsign])
+    Map(function(n, v) c(name=n, value=v), parnames, parlist, USE.NAMES=FALSE)
 }
 
 
