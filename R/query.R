@@ -45,8 +45,6 @@ get_docs <- function(response, as_data_frame, metadata, container, ...)
         docs <- if(inherits(response, "response"))
             docs$Documents
         else unlist(lapply(docs, `[[`, "Documents"), recursive=FALSE, use.names=FALSE)
-
-        return(lapply(docs, function(doc)
-            structure(list(container=container, data=doc), class="cosmos_document")))
+        return(lapply(docs, as_document, container=container))
     }
 }

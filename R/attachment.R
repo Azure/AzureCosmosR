@@ -10,9 +10,9 @@ list_attachments.cosmos_document <- function(document, ...)
     path <- "attachments"
     res <- do_cosmos_op(document, path, "attachments", "", ...)
     atts <- if(inherits(res, "response"))
-        process_cosmos_response(res, ...)$Attachments
-    else lapply(process_cosmos_response(res, ...), `[[`, "Attachments")
-    atts
+        process_cosmos_response(res)$Attachments
+    else lapply(process_cosmos_response(res), `[[`, "Attachments")
+    lapply(atts, as_attachment, document=document)
 }
 
 
@@ -54,7 +54,34 @@ create_attachment.cosmos_document <- function(document, file, content_type, id=N
         ), auto_unbox=TRUE)
     }
     res <- do_cosmos_op(document, "attachments", "attachments", "", headers=headers, body=body, http_verb="POST", ...)
-    process_cosmos_response(res, ...)
+    att <- process_cosmos_response(res, ...)
+    invisible(as_attachment(att, document))
+}
+
+
+#' @export
+download_attachment <- function(attachment, ...)
+{
+    UseMethod("download_attachment")
+}
+
+#' @export
+download_attachment.cosmos_attachment <- function(attachment, destfile, overwrite=FALSE, ...)
+{
+    key <- attachment$document$container$database$endpoint$key
+    reslink <- tolower(attachment$`_rid`)
+    now <- Sys.time()
+    sig <- sign_cosmos_request(key, "GET", "media", reslink, now)
+    headers <- list(
+        Authorization=sig,
+        `x-ms-date`=httr::http_date(now),
+        `x-ms-version`=attachment$document$container$database$endpoint$api_version
+    )
+    url <- attachment$document$container$database$endpoint$host
+    url$path <- attachment$media
+
+    httr::GET(url, do.call(httr::add_headers, headers),
+              config=httr::write_disk(destfile, overwrite=overwrite), httr::progress())
 }
 
 
@@ -72,5 +99,26 @@ delete_attachment.cosmos_document <- function(document, id, confirm=TRUE, ...)
 
     path <- file.path("attachments", id)
     res <- do_cosmos_op(document, path, "attachments", path, http_verb="DELETE", ...)
-    process_cosmos_response(res, ...)
+    invisible(process_cosmos_response(res, ...))
+}
+
+#' @export
+delete_attachment.cosmos_attachment <- function(document, ...)
+{
+    delete_attachment(document$document, document$id, ...)
+}
+
+
+#' @export
+print.cosmos_attachment <- function(x, ...)
+{
+    cat("Cosmos DB document attachment '", x$id, "'\n", sep="")
+    invisible(x)
+}
+
+
+as_attachment <- function(attachment, document)
+{
+    attachment$document <- document
+    structure(attachment, class="cosmos_attachment")
 }
