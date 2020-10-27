@@ -53,6 +53,29 @@ call_stored_procedure.cosmos_stored_procedure <- function(container, ...)
 
 
 #' @export
+replace_stored_procedure <- function(container, ...)
+{
+    UseMethod("replace_stored_procedure")
+}
+
+#' @export
+replace_stored_procedure.cosmos_container <- function(container, name, body, ...)
+{
+    body <- list(id=name, body=body)
+    path <- file.path("sprocs", name)
+    res <- do_cosmos_op(container, path, "sprocs", path, body=body, encode="json", http_verb="PUT", ...)
+    sproc <- process_cosmos_response(res, ...)
+    invisible(as_stored_procedure(sproc, container))
+}
+
+#' @export
+replace_stored_procedure.cosmos_stored_procedure <- function(container, ...)
+{
+    replace_stored_procedure.cosmos_container(container$container, container$id, container$body, ...)
+}
+
+
+#' @export
 delete_stored_procedure <- function(container, ...)
 {
     UseMethod("delete_stored_procedure")
