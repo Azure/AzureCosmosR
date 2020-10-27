@@ -9,8 +9,8 @@ list_attachments.cosmos_document <- function(document, ...)
 {
     res <- do_cosmos_op(document, "attachments", "attachments", "", ...)
     atts <- if(inherits(res, "response"))
-        process_cosmos_response(res)$Attachments
-    else lapply(process_cosmos_response(res), `[[`, "Attachments")
+        process_cosmos_response(res, ...)$Attachments
+    else unlist(lapply(process_cosmos_response(res, ...), `[[`, "Attachments"), recursive=FALSE)
     lapply(atts, as_attachment, document=document)
 }
 

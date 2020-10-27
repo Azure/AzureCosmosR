@@ -2,7 +2,8 @@ Package: AzureCosmosR
 Title: Interface to the 'Azure Cosmos DB' document database service
 Version: 0.0.1
 Authors@R: c(
-    person("Hong", "Ooi", , "hongooi73@gmail.com", role = c("aut", "cre")),
+    person("Hong", "Ooi", , "hongooi73@gmail.com", role=c("aut", "cre")),
+    person("Andrew", "Liu", role="ctb", comment="Assistance with Cosmos DB"),
     person("Microsoft", role="cph")
     )
 Description: An interface to 'Azure CosmosDB': <https://azure.microsoft.com/en-us/services/cosmos-db/>. On the admin side, 'AzureCosmosR' provides functionality to create and manage 'Cosmos DB' instances in Microsoft's 'Azure' cloud. On the client side, it provides an interface to the 'Cosmos DB' SQL API, letting the user store and query documents and attachments in 'Cosmos DB'. Part of the 'AzureR' family of packages.

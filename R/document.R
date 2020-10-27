@@ -11,7 +11,7 @@ get_document.cosmos_container <- function(container, id, partition_key, metadata
     headers$`x-ms-documentdb-partitionkey` <- jsonlite::toJSON(partition_key)
 
     res <- do_cosmos_op(container, file.path("docs", id), "docs", file.path("docs", id), headers=headers, ...)
-    doc <- process_cosmos_response(res, simplify=FALSE)
+    doc <- process_cosmos_response(res, simplifyDataFrame=FALSE, ...)
     if(!metadata)
         doc[c("id", "_rid", "_self", "_etag", "_attachments", "_ts")] <- NULL
     as_document(doc, container)
@@ -43,7 +43,7 @@ create_document.cosmos_container <- function(container, data, headers=list(), ..
     data <- jsonlite::toJSON(data, auto_unbox=TRUE, null="null")
 
     res <- do_cosmos_op(container, "docs", "docs", "", headers=headers, body=data, http_verb="POST", ...)
-    obj <- process_cosmos_response(res)
+    obj <- process_cosmos_response(res, ...)
     invisible(as_document(obj, container))
 }
 
