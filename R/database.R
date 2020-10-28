@@ -1,15 +1,15 @@
 #' @export
-get_database <- function(endpoint, ...)
+get_cosmos_database <- function(endpoint, ...)
 {
-    UseMethod("get_database")
+    UseMethod("get_cosmos_database")
 }
 
 #' @export
-get_database.cosmos_endpoint <- function(endpoint, name, ...)
+get_cosmos_database.cosmos_endpoint <- function(endpoint, name, ...)
 {
     path <- file.path("dbs", name)
     res <- do_cosmos_op(endpoint, path, "dbs", path, ...)
-    obj <- process_cosmos_response(res, ...)
+    obj <- process_cosmos_response(res)
     class(obj) <- "cosmos_database"
     obj$endpoint <- endpoint
     obj
@@ -17,13 +17,13 @@ get_database.cosmos_endpoint <- function(endpoint, name, ...)
 
 
 #' @export
-create_database <- function(endpoint, ...)
+create_cosmos_database <- function(endpoint, ...)
 {
-    UseMethod("create_database")
+    UseMethod("create_cosmos_database")
 }
 
 #' @export
-create_database.cosmos_endpoint <- function(endpoint, name, autoscale_maxRUs=NULL, manual_RUs=NULL, headers=list(), ...)
+create_cosmos_database.cosmos_endpoint <- function(endpoint, name, autoscale_maxRUs=NULL, manual_RUs=NULL, headers=list(), ...)
 {
     if(!is.null(manual_RUs))
         headers$`x-ms-offer-throughput` <- manual_RUs
@@ -32,7 +32,7 @@ create_database.cosmos_endpoint <- function(endpoint, name, autoscale_maxRUs=NUL
 
     body <- list(id=name)
     res <- do_cosmos_op(endpoint, "dbs", "dbs", "", headers=headers, body=body, encode="json", http_verb="POST", ...)
-    obj <- process_cosmos_response(res, ...)
+    obj <- process_cosmos_response(res)
     class(obj) <- "cosmos_database"
     obj$endpoint <- endpoint
     obj
@@ -40,40 +40,40 @@ create_database.cosmos_endpoint <- function(endpoint, name, autoscale_maxRUs=NUL
 
 
 #' @export
-delete_database <- function(endpoint, ...)
+delete_cosmos_database <- function(endpoint, ...)
 {
-    UseMethod("delete_database")
+    UseMethod("delete_cosmos_database")
 }
 
 #' @export
-delete_database.cosmos_endpoint <- function(endpoint, name, confirm=TRUE, ...)
+delete_cosmos_database.cosmos_endpoint <- function(endpoint, name, confirm=TRUE, ...)
 {
     if(!delete_confirmed(confirm, name, "database"))
         return(invisible(NULL))
 
     path <- file.path("dbs", name)
     res <- do_cosmos_op(endpoint, path, "dbs", path, http_verb="DELETE", ...)
-    invisible(process_cosmos_response(res, ...))
+    invisible(process_cosmos_response(res))
 }
 
 #' @export
-delete_database.cosmos_database <- function(endpoint, ...)
+delete_cosmos_database.cosmos_database <- function(endpoint, ...)
 {
-    delete_database(endpoint$endpoint, endpoint$id, ...)
+    delete_cosmos_database(endpoint$endpoint, endpoint$id, ...)
 }
 
 
 #' @export
-list_databases <- function(endpoint, ...)
+list_cosmos_databases <- function(endpoint, ...)
 {
-    UseMethod("list_databases")
+    UseMethod("list_cosmos_databases")
 }
 
 #' @export
-list_databases.cosmos_endpoint <- function(endpoint, ...)
+list_cosmos_databases.cosmos_endpoint <- function(endpoint, ...)
 {
     res <- do_cosmos_op(endpoint, "dbs", "dbs", "", ...)
-    AzureRMR::named_list(lapply(process_cosmos_response(res, simplify=FALSE, ...)$Databases, function(obj)
+    AzureRMR::named_list(lapply(process_cosmos_response(res)$Databases, function(obj)
     {
         obj$endpoint <- endpoint
         structure(obj, class="cosmos_database")

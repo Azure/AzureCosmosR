@@ -1,15 +1,15 @@
 #' @export
-get_container <- function(database, ...)
+get_cosmos_container <- function(database, ...)
 {
-    UseMethod("get_container")
+    UseMethod("get_cosmos_container")
 }
 
 #' @export
-get_container.cosmos_database <- function(database, name, ...)
+get_cosmos_container.cosmos_database <- function(database, name, ...)
 {
     path <- file.path("colls", name)
     res <- do_cosmos_op(database, path, "colls", path, ...)
-    obj <- process_cosmos_response(res, ...)
+    obj <- process_cosmos_response(res)
     obj$database <- database
     class(obj) <- "cosmos_container"
     obj
@@ -17,13 +17,13 @@ get_container.cosmos_database <- function(database, name, ...)
 
 
 #' @export
-create_container <- function(database, ...)
+create_cosmos_container <- function(database, ...)
 {
-    UseMethod("create_container")
+    UseMethod("create_cosmos_container")
 }
 
 #' @export
-create_container.cosmos_database <- function(database, name, partition_key, partition_version=1,
+create_cosmos_container.cosmos_database <- function(database, name, partition_key, partition_version=1,
     autoscale_maxRUs=NULL, manual_RUs=NULL, headers=list(), ...)
 {
     if(!is.null(manual_RUs))
@@ -42,7 +42,7 @@ create_container.cosmos_database <- function(database, name, partition_key, part
 
     res <- do_cosmos_op(database, "colls", "colls", "", headers=headers, body=body, encode="json",
                         http_verb="POST", ...)
-    obj <- process_cosmos_response(res, ...)
+    obj <- process_cosmos_response(res)
     obj$database <- database
     class(obj) <- "cosmos_container"
     obj
@@ -51,26 +51,60 @@ create_container.cosmos_database <- function(database, name, partition_key, part
 
 
 #' @export
-delete_container <- function(database, ...)
+delete_cosmos_container <- function(database, ...)
 {
-    UseMethod("delete_container")
+    UseMethod("delete_cosmos_container")
 }
 
 #' @export
-delete_container.cosmos_database <- function(database, name, confirm=TRUE, ...)
+delete_cosmos_container.cosmos_database <- function(database, name, confirm=TRUE, ...)
 {
     if(!delete_confirmed(confirm, name, "container"))
         return(invisible(NULL))
 
     path <- file.path("colls", name)
     res <- do_cosmos_op(database, path, "colls", path, http_verb="DELETE", ...)
-    invisible(process_cosmos_response(res, ...))
+    invisible(process_cosmos_response(res))
 }
 
 #' @export
-delete_container.cosmos_container <- function(database, ...)
+delete_cosmos_container.cosmos_container <- function(database, ...)
 {
-    delete_container(database$database, database$id, ...)
+    delete_cosmos_container(database$database, database$id, ...)
+}
+
+
+#' @export
+list_cosmos_containers <- function(database, ...)
+{
+    UseMethod("list_cosmos_containers")
+}
+
+#' @export
+list_cosmos_containers.cosmos_database <- function(database, ...)
+{
+    res <- do_cosmos_op(database, "colls", "colls", "", ...)
+    AzureRMR::named_list(lapply(process_cosmos_response(res)$DocumentCollections, function(obj)
+    {
+        obj$database <- database
+        structure(obj, class="cosmos_container")
+    }), "id")
+}
+
+
+#' @export
+get_partition_key <- function(container)
+{
+    UseMethod("get_partition_key")
+}
+
+#' @export
+get_partition_key.cosmos_container <- function(container)
+{
+    key <- container$partitionKey$paths
+    if(is.character(key))
+        sub("^/", "", key)
+    else NULL
 }
 
 

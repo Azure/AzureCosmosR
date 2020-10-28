@@ -9,8 +9,8 @@ list_stored_procedures.cosmos_container <- function(container, ...)
 {
     res <- do_cosmos_op(container, "sprocs", "sprocs", "", ...)
     atts <- if(inherits(res, "response"))
-        process_cosmos_response(res, ...)$StoredProcedures
-    else unlist(lapply(process_cosmos_response(res, ...), `[[`, "StoredProcedures"), recursive=FALSE)
+        process_cosmos_response(res)$StoredProcedures
+    else unlist(lapply(process_cosmos_response(res), `[[`, "StoredProcedures"), recursive=FALSE)
     lapply(atts, as_stored_procedure, container=container)
 }
 
@@ -24,9 +24,9 @@ create_stored_procedure <- function(container, ...)
 #' @export
 create_stored_procedure.cosmos_container <- function(container, name, body, ...)
 {
-    body <- list(id=name, body=body)
+    body <- list(id=name, body=paste0(body, collapse="\n"))
     res <- do_cosmos_op(container, "sprocs", "sprocs", "", body=body, encode="json", http_verb="POST", ...)
-    sproc <- process_cosmos_response(res, ...)
+    sproc <- process_cosmos_response(res)
     invisible(as_stored_procedure(sproc, container))
 }
 
@@ -42,7 +42,7 @@ call_stored_procedure.cosmos_container <- function(container, name, parameters=l
 {
     path <- file.path("sprocs", name)
     res <- do_cosmos_op(container, path, "sprocs", path, body=parameters, encode="json", http_verb="POST", ...)
-    process_cosmos_response(res, ...)
+    process_cosmos_response(res)
 }
 
 #' @export
@@ -64,7 +64,7 @@ replace_stored_procedure.cosmos_container <- function(container, name, body, ...
     body <- list(id=name, body=body)
     path <- file.path("sprocs", name)
     res <- do_cosmos_op(container, path, "sprocs", path, body=body, encode="json", http_verb="PUT", ...)
-    sproc <- process_cosmos_response(res, ...)
+    sproc <- process_cosmos_response(res)
     invisible(as_stored_procedure(sproc, container))
 }
 
@@ -89,7 +89,7 @@ delete_stored_procedure.cosmos_container <- function(container, name, confirm=TR
 
     path <- file.path("sprocs", name)
     res <- do_cosmos_op(container, path, "attachments", path, http_verb="DELETE", ...)
-    invisible(process_cosmos_response(res, ...))
+    invisible(process_cosmos_response(res))
 }
 
 #' @export

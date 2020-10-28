@@ -86,12 +86,15 @@ do_request <- function(url, key, resource_type, resource_link, headers=list(), b
             now
         )
         response <- tryCatch(httr::VERB(http_verb, url, do.call(httr::add_headers, headers), body=body, ...),
-                            error=function(e) e)
-        if(!retry_transfer(response))
+                             error=function(e) e)
+        if(!retry_transfer(response))  # retry on curl errors (except host not found) and http 429 responses
             break
-        if(inherits(response, "response"))
-            delay <- headers(response)$`x-ms-retry-after-ms`
-        delay <- if(!is.null(delay)) as.numeric(delay)/1000 else 1
+        delay <- if(inherits(response, "response"))
+        {
+            delay <- httr::headers(response)$`x-ms-retry-after-ms`
+            if(!is.null(delay)) as.numeric(delay)/1000 else 1
+        }
+        else 1
         Sys.sleep(delay)
     }
     if(inherits(response, "error"))
@@ -107,7 +110,6 @@ retry_transfer <- function(response)
 
 retry_transfer.error <- function(response)
 {
-    # retry on curl errors and http 429 responses
     grepl("curl", deparse(response$call[[1]]), fixed=TRUE) &&
         !grepl("Could not resolve host", response$message, fixed=TRUE)
 }
@@ -139,7 +141,7 @@ process_cosmos_response.response <- function(response, http_status_handler=c("st
 
     if(return_headers)
         unclass(httr::headers(response))
-    else httr::content(response, simplifyVector=simplifyVector, simplifyDataFrame=simplifyDataFrame, ...)
+    else httr::content(response, simplifyVector=simplifyVector, simplifyDataFrame=simplifyDataFrame)
 }
 
 
@@ -158,8 +160,8 @@ process_cosmos_response.list <- function(response, http_status_handler=c("stop",
         http_status_handler=http_status_handler,
         return_headers=return_headers,
         simplifyVector=simplifyVector,
-        simplifyDataFrame=simplifyDataFrame,
-        ...)
+        simplifyDataFrame=simplifyDataFrame
+    )
 }
 
 

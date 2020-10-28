@@ -1,5 +1,12 @@
 #' @export
-query_documents <- function(container, query, parameters=list(), cross_partition=TRUE, partition_key=NULL,
+query_documents <- function(container, ...)
+{
+    UseMethod("query_documents")
+}
+
+#' @export
+query_documents.cosmos_container <- function(container, query, parameters=list(),
+    cross_partition=TRUE, partition_key=NULL,
     as_data_frame=TRUE, metadata=FALSE, headers=list(), ...)
 {
     headers <- utils::modifyList(headers, list(`Content-Type`="application/query+json"))
@@ -10,7 +17,7 @@ query_documents <- function(container, query, parameters=list(), cross_partition
 
     body <- list(query=query, parameters=make_parameter_list(parameters))
     res <- do_cosmos_op(container, "docs", "docs", headers=headers, body=body, encode="json", http_verb="POST", ...)
-    get_docs(res, as_data_frame, metadata, container, ...)
+    get_docs(res, as_data_frame, metadata, container)
 }
 
 
@@ -23,9 +30,9 @@ make_parameter_list <- function(parlist)
 }
 
 
-get_docs <- function(response, as_data_frame, metadata, container, ...)
+get_docs <- function(response, as_data_frame, metadata, container)
 {
-    docs <- process_cosmos_response(response, simplifyVector=TRUE, simplifyDataFrame=as_data_frame, ...)
+    docs <- process_cosmos_response(response, simplifyVector=TRUE, simplifyDataFrame=as_data_frame)
 
     if(as_data_frame)
     {
@@ -36,7 +43,7 @@ get_docs <- function(response, as_data_frame, metadata, container, ...)
         if(AzureRMR::is_empty(docs))
             return(data.frame())
 
-        if(!metadata)
+        if(!metadata && is.data.frame(docs))  # a query can return scalars rather than documents
             docs[c("id", "_rid", "_self", "_etag", "_attachments", "_ts")] <- NULL
         return(docs)
     }
