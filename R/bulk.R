@@ -62,7 +62,8 @@ bulk_delete <- function(container, ...)
 }
 
 #' @export
-bulk_delete.cosmos_container <- function(container, query, ..., procname="_AzureCosmosR_bulkDelete")
+bulk_delete.cosmos_container <- function(container, query, partition_key,
+    procname="_AzureCosmosR_bulkDelete", headers=list(), ...)
 {
     # create the stored procedure if necessary
     res <- tryCatch(create_stored_procedure(container, procname,
@@ -71,6 +72,18 @@ bulk_delete.cosmos_container <- function(container, query, ..., procname="_Azure
         if(!(is.character(res$message) && grepl("HTTP 409", res$message)))  # proc already existing is ok
             stop(res)
 
-    res <- call_stored_procedure.cosmos_container(container, procname, query, ...)
-    count <- process_cosmos_response(res)
+    if(!is.null(partition_key))
+        headers$`x-ms-documentdb-partitionkey` <- jsonlite::toJSON(partition_key)
+
+    if(length(query) > 1)
+        query <- paste0(query, collapse="\n")
+    deleted <- 0
+    repeat
+    {
+        res <- call_stored_procedure.cosmos_container(container, procname, list(query), headers=headers, ...)
+        deleted <- deleted + res$deleted
+        if(!res$continuation)
+            break
+    }
+    invisible(deleted)
 }

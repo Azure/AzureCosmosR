@@ -15,6 +15,8 @@ query_documents.cosmos_container <- function(container, query, parameters=list()
     if(!is.null(partition_key))
         headers$`x-ms-documentdb-partitionkey` <- jsonlite::toJSON(partition_key)
 
+    if(length(query) > 1)
+        query <- paste0(query, collapse="\n")
     body <- list(query=query, parameters=make_parameter_list(parameters))
     res <- do_cosmos_op(container, "docs", "docs", headers=headers, body=body, encode="json", http_verb="POST", ...)
     get_docs(res, as_data_frame, metadata, container)
