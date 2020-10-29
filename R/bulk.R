@@ -5,35 +5,27 @@ bulk_import <- function(container, ...)
 }
 
 #' @export
-bulk_import.cosmos_container <- local({
-    .sproc_created <- FALSE
+bulk_import.cosmos_container <- function(container, data, procname="_AzureCosmosR_bulkImport", init_chunksize=1000, ...)
+{
+    # create the stored procedure if necessary
+    res <- tryCatch(create_stored_procedure(container, procname,
+        readLines(system.file("srcjs/bulkUpload.js", package="AzureCosmosR"))), error=function(e) e)
+    if(inherits(res, "error"))
+        if(!(is.character(res$message) && grepl("HTTP 409", res$message)))  # proc already existing is ok
+            stop(res)
 
-    function(container, data, procname="_AzureCosmosR_bulkImport", init_chunksize=10000, ...)
+    key <- get_partition_key(container)
+    res <- if(is.null(key))
+        import_by_key(container, NULL, data, procname, init_chunksize, ...)
+    else
     {
-        # create the stored procedure if necessary
-        if(!.sproc_created)
-        {
-            res <- tryCatch(create_stored_procedure(container, procname,
-                readLines(system.file("srcjs/bulkUpload.js", package="AzureCosmosR"))), error=function(e) e)
-            if(inherits(res, "error"))
-                if(!(is.character(res$message) && grepl("HTTP 409", res$message)))  # proc already existing is ok
-                    stop(res)
-            .sproc_created <<- TRUE
-        }
-
-        key <- get_partition_key(container)
-        res <- if(is.null(key))
-            import_by_key(container, NULL, data, procname, init_chunksize, ...)
-        else
-        {
-            if(is.null(data[[key]]))
-                stop("Data does not contain partition key", call.=FALSE)
-            lapply(split(data, data[[key]]), function(partdata)
-                import_by_key(container, partdata[[key]][1], partdata, procname, init_chunksize, ...))
-        }
-        invisible(res)
+        if(is.null(data[[key]]))
+            stop("Data does not contain partition key", call.=FALSE)
+        lapply(split(data, data[[key]]), function(partdata)
+            import_by_key(container, partdata[[key]][1], partdata, procname, init_chunksize, ...))
     }
-})
+    invisible(res)
+}
 
 import_by_key <- function(container, key, data, procname, init_chunksize, headers=list(), ...)
 {
@@ -57,7 +49,7 @@ import_by_key <- function(container, key, data, procname, init_chunksize, header
         # adjust chunksize based on observed import performance per chunk
         this_chunksize <- if(this_import < this_chunksize)
             (this_chunksize + this_import)/2
-        else floor(avg_chunksize + this_chunksize*2/n)
+        else this_chunksize*2
     }
     rows_imported
 }
@@ -70,20 +62,15 @@ bulk_delete <- function(container, ...)
 }
 
 #' @export
-bulk_delete.cosmos_container <- local({
-    .sproc_created <- FALSE
+bulk_delete.cosmos_container <- function(container, query, ..., procname="_AzureCosmosR_bulkDelete")
+{
+    # create the stored procedure if necessary
+    res <- tryCatch(create_stored_procedure(container, procname,
+        readLines(system.file("srcjs/bulkDelete.js", package="AzureCosmosR"))), error=function(e) e)
+    if(inherits(res, "error"))
+        if(!(is.character(res$message) && grepl("HTTP 409", res$message)))  # proc already existing is ok
+            stop(res)
 
-    function(container, query, ..., procname="_AzureCosmosR_bulkDelete")
-    {
-        # create the stored procedure if necessary
-        if(!.sproc_created)
-        {
-            create_stored_procedure(container, procname,
-                readLines(system.file("srcjs/bulkDelete.js", package="AzureCosmosR")))
-            .sproc_created <<- TRUE
-        }
-
-        res <- call_stored_procedure.cosmos_container(container, procname, query, ...)
-        count <- process_cosmos_response(res)
-    }
-})
+    res <- call_stored_procedure.cosmos_container(container, procname, query, ...)
+    count <- process_cosmos_response(res)
+}
