@@ -19,7 +19,26 @@ query_documents.cosmos_container <- function(container, query, parameters=list()
         query <- paste0(query, collapse="\n")
     body <- list(query=query, parameters=make_parameter_list(parameters))
     res <- do_cosmos_op(container, "docs", "docs", headers=headers, body=body, encode="json", http_verb="POST", ...)
-    get_docs(res, as_data_frame, metadata, container)
+
+    # check if query can be sent to individual partitions or needs to be rewritten
+    if(bad_query_with_valid_syntax(res))
+    {
+        message("Running query on individual physical partitions")
+        if(query_needs_rewrite(res))
+        {
+            message("Also rewriting query for individual physical partitions")
+            body$query <- rewrite_query(res)
+        }
+        part_ids <- get_partition_physical_ids(container)
+        lapply(part_ids, function(id)
+        {
+            headers$`x-ms-documentdb-partitionkeyrangeid` <- id
+            res_part <- do_cosmos_op(container, "docs", "docs", headers=headers, body=body, encode="json",
+                                     http_verb="POST", ...)
+            get_docs(res_part, as_data_frame, metadata, container)
+        })
+    }
+    else get_docs(res, as_data_frame, metadata, container)
 }
 
 
@@ -56,4 +75,27 @@ get_docs <- function(response, as_data_frame, metadata, container)
         else unlist(lapply(docs, `[[`, "Documents"), recursive=FALSE, use.names=FALSE)
         return(lapply(docs, as_document, container=container))
     }
+}
+
+
+bad_query_with_valid_syntax <- function(response)
+{
+    if(!inherits(response, "response") || httr::status_code(response) != 400)
+        return(FALSE)
+    cont <- httr::content(response)
+    is.character(cont$message) && !grepl("Syntax error", cont$message, fixed=TRUE)
+}
+
+
+query_needs_rewrite <- function(response)
+{
+    cont <- httr::content(response)
+    !is.null(cont$additionalErrorInfo)
+}
+
+
+rewrite_query <- function(response)
+{
+    cont <- httr::content(response)
+    jsonlite::fromJSON(cont$additionalErrorInfo)$queryInfo$rewrittenQuery
 }

@@ -23,7 +23,7 @@ create_cosmos_container <- function(database, ...)
 }
 
 #' @export
-create_cosmos_container.cosmos_database <- function(database, name, partition_key, partition_version=1,
+create_cosmos_container.cosmos_database <- function(database, name, partition_key, partition_version=2,
     autoscale_maxRUs=NULL, manual_RUs=NULL, headers=list(), ...)
 {
     if(!is.null(manual_RUs))
@@ -127,5 +127,22 @@ do_cosmos_op.cosmos_container <- function(object, path="", resource_type="colls"
     if(nchar(resource_link) > 0)
         full_reslink <- file.path(full_reslink, resource_link)
     call_cosmos_endpoint(object$database$endpoint, full_path, resource_type, full_reslink, ...)
+}
+
+
+get_partition_physical_ids <- function(container, ...)
+{
+    UseMethod("get_partition_physical_ids")
+}
+
+#' @export
+get_partition_physical_ids.cosmos_container <- function(container, id_only=TRUE, ...)
+{
+    res <- do_cosmos_op(container, "pkranges", "pkranges", "",
+        headers=list(`x-ms-documentdb-query-enablecrosspartition`=TRUE))
+    lst <- process_cosmos_response(res)
+    if(id_only)
+        sapply(lst$PartitionKeyRanges, `[[`, "id")
+    else lst$PartitionKeyRanges
 }
 
