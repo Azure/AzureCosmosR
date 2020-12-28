@@ -5,7 +5,8 @@ bulk_import <- function(container, ...)
 }
 
 #' @export
-bulk_import.cosmos_container <- function(container, data, procname="_AzureCosmosR_bulkImport", init_chunksize=1000, ...)
+bulk_import.cosmos_container <- function(container, data, procname="_AzureCosmosR_bulkImport",
+    init_chunksize=1000, verbose=TRUE, ...)
 {
     # create the stored procedure if necessary
     res <- tryCatch(create_stored_procedure(container, procname,
@@ -27,7 +28,7 @@ bulk_import.cosmos_container <- function(container, data, procname="_AzureCosmos
     invisible(res)
 }
 
-import_by_key <- function(container, key, data, procname, init_chunksize, headers=list(), ...)
+import_by_key <- function(container, key, data, procname, init_chunksize, headers=list(), verbose=TRUE, ...)
 {
     rows_imported <- 0
     this_import <- 0
@@ -43,8 +44,9 @@ import_by_key <- function(container, key, data, procname, init_chunksize, header
         this_import <- call_stored_procedure(container, procname, list(data[this_chunk, ]), headers=headers, ...)
         rows_imported <- rows_imported + this_import
         avg_chunksize <- (avg_chunksize * (n-1))/n + this_chunksize/n
-        message("Rows imported: ", rows_imported, "  this chunk: ", length(this_chunk),
-                "  average chunksize: ", avg_chunksize)
+        if(verbose)
+            message("Rows imported: ", rows_imported, "  this chunk: ", length(this_chunk),
+                    "  average chunksize: ", avg_chunksize)
 
         # adjust chunksize based on observed import performance per chunk
         this_chunksize <- if(this_import < this_chunksize)
