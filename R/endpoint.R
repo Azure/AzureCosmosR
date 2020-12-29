@@ -128,7 +128,7 @@ process_cosmos_response <- function(response, ...)
 
 #' @export
 process_cosmos_response.response <- function(response, http_status_handler=c("stop", "warn", "message", "pass"),
-    return_headers=NULL, simplify=FALSE, simplifyVector=TRUE, simplifyDataFrame=FALSE, ...)
+    return_headers=NULL, simplify=FALSE, ...)
 {
     http_status_handler <- match.arg(http_status_handler)
     if(http_status_handler == "pass")
@@ -141,13 +141,13 @@ process_cosmos_response.response <- function(response, http_status_handler=c("st
 
     if(return_headers)
         unclass(httr::headers(response))
-    else httr::content(response, simplifyVector=simplifyVector, simplifyDataFrame=simplifyDataFrame)
+    else httr::content(response, simplifyVector=TRUE, simplifyDataFrame=simplify)
 }
 
 
 #' @export
 process_cosmos_response.list <- function(response, http_status_handler=c("stop", "warn", "message", "pass"),
-    return_headers=NULL, simplifyVector=TRUE, simplifyDataFrame=FALSE, ...)
+    return_headers=NULL, simplify=FALSE, ...)
 {
     if(!inherits(response[[1]], "response"))
         stop("Expecting a list of response objects", call.=FALSE)
@@ -156,12 +156,8 @@ process_cosmos_response.list <- function(response, http_status_handler=c("stop",
     if(http_status_handler == "pass")
         return(response)
 
-    lapply(response, process_cosmos_response,
-        http_status_handler=http_status_handler,
-        return_headers=return_headers,
-        simplifyVector=simplifyVector,
-        simplifyDataFrame=simplifyDataFrame
-    )
+    lapply(response, process_cosmos_response, http_status_handler=http_status_handler, return_headers=return_headers,
+           simplify=simplify)
 }
 
 

@@ -6,8 +6,8 @@ query_documents <- function(container, ...)
 
 #' @export
 query_documents.cosmos_container <- function(container, query, parameters=list(),
-    cross_partition=TRUE, partition_key=NULL,
-    as_data_frame=TRUE, metadata=FALSE, headers=list(), ...)
+    cross_partition=TRUE, partition_key=NULL, by_physical_partition=FALSE,
+    as_data_frame=TRUE, metadata=TRUE, headers=list(), ...)
 {
     headers <- utils::modifyList(headers, list(`Content-Type`="application/query+json"))
     if(cross_partition)
@@ -20,15 +20,15 @@ query_documents.cosmos_container <- function(container, query, parameters=list()
     body <- list(query=query, parameters=make_parameter_list(parameters))
     res <- do_cosmos_op(container, "docs", "docs", headers=headers, body=body, encode="json", http_verb="POST", ...)
 
-    # check if query can be sent to individual partitions or needs to be rewritten
-    if(bad_query_with_valid_syntax(res))
+    # sending query to individual partitions (low-level API)
+    if(by_physical_partition)
     {
         message("Running query on individual physical partitions")
-        if(query_needs_rewrite(res))
-        {
-            message("Also rewriting query for individual physical partitions")
-            body$query <- rewrite_query(res)
-        }
+        # if(query_needs_rewrite(res))
+        # {
+        #     message("Also rewriting query for individual physical partitions")
+        #     body$query <- rewrite_query(res)
+        # }
         part_ids <- get_partition_physical_ids(container)
         lapply(part_ids, function(id)
         {
@@ -53,7 +53,7 @@ make_parameter_list <- function(parlist)
 
 get_docs <- function(response, as_data_frame, metadata, container)
 {
-    docs <- process_cosmos_response(response, simplifyVector=TRUE, simplifyDataFrame=as_data_frame)
+    docs <- process_cosmos_response(response, simplify=as_data_frame)
 
     if(as_data_frame)
     {
@@ -78,24 +78,31 @@ get_docs <- function(response, as_data_frame, metadata, container)
 }
 
 
-bad_query_with_valid_syntax <- function(response)
-{
-    if(!inherits(response, "response") || httr::status_code(response) != 400)
-        return(FALSE)
-    cont <- httr::content(response)
-    is.character(cont$message) && !grepl("Syntax error", cont$message, fixed=TRUE)
-}
+# bad_query_with_valid_syntax <- function(response)
+# {
+#     if(!inherits(response, "response") || httr::status_code(response) != 400)
+#         return(FALSE)
+#     cont <- httr::content(response)
+#     is.character(cont$message) && !grepl("Syntax error", cont$message, fixed=TRUE)
+# }
 
 
-query_needs_rewrite <- function(response)
-{
-    cont <- httr::content(response)
-    !is.null(cont$additionalErrorInfo)
-}
+# query_needs_rewrite <- function(response)
+# {
+#     cont <- httr::content(response)
+#     if(is.null(cont$additionalErrorInfo))
+#         return(FALSE)
+
+#     qry <- try(jsonlite::fromJSON(cont$additionalErrorInfo)$queryInfo$rewrittenQuery, silent=TRUE)
+#     if(inherits(qry, "try-error"))
+#         return(FALSE)
+
+#     is.character(qry) && nchar(qry) > 0
+# }
 
 
-rewrite_query <- function(response)
-{
-    cont <- httr::content(response)
-    jsonlite::fromJSON(cont$additionalErrorInfo)$queryInfo$rewrittenQuery
-}
+# rewrite_query <- function(response)
+# {
+#     cont <- httr::content(response)
+#     jsonlite::fromJSON(cont$additionalErrorInfo)$queryInfo$rewrittenQuery
+# }

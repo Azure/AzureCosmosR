@@ -51,7 +51,7 @@ import_by_key <- function(container, key, data, procname, init_chunksize, header
         # adjust chunksize based on observed import performance per chunk
         this_chunksize <- if(this_import < this_chunksize)
             (this_chunksize + this_import)/2
-        else this_chunksize*2
+        else init_chunksize
     }
     rows_imported
 }

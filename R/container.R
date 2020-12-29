@@ -130,6 +130,22 @@ do_cosmos_op.cosmos_container <- function(object, path="", resource_type="colls"
 }
 
 
+#' @export
+get_key_values <- function(container)
+{
+    UseMethod("get_key_values")
+}
+
+#' @export
+get_key_values.cosmos_container <- function(container)
+{
+    key <- get_partition_key(container)[1]
+    qry <- sprintf("select distinct value %s.%s from %s", container$id, key, container$id)
+    lst <- suppressMessages(query_documents(container, qry, by_physical_partition=TRUE))
+    unique(unlist(lst))
+}
+
+
 get_partition_physical_ids <- function(container, ...)
 {
     UseMethod("get_partition_physical_ids")
