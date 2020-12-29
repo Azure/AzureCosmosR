@@ -47,31 +47,31 @@ private=list(
 
     assert_has_sql=function()
     {
-        if(!is.null(self$properties$documentEndpoint))
+        if(is.null(self$properties$documentEndpoint))
             stop("Not a SQL-enabled Cosmos DB account", call.=FALSE)
     },
 
     assert_has_cassandra=function()
     {
-        if(!is.null(self$properties$cassandraEndpoint))
+        if(is.null(self$properties$cassandraEndpoint))
             stop("Not a Cassandra-enabled Cosmos DB account", call.=FALSE)
     },
 
     assert_has_mongo=function()
     {
-        if(!is.null(self$properties$mongoEndpoint))
+        if(is.null(self$properties$mongoEndpoint))
             stop("Not a MongoDB-enabled Cosmos DB account", call.=FALSE)
     },
 
     assert_has_table=function()
     {
-        if(!is.null(self$properties$tableEndpoint))
+        if(is.null(self$properties$tableEndpoint))
             stop("Not a table storage-enabled Cosmos DB account", call.=FALSE)
     },
 
     assert_has_graph=function()
     {
-        if(!is.null(self$properties$gremlinEndpoint))
+        if(is.null(self$properties$gremlinEndpoint))
             stop("Not a Gremlin-enabled Cosmos DB account", call.=FALSE)
     }
 ))
