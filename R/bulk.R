@@ -5,8 +5,8 @@ bulk_import <- function(container, ...)
 }
 
 #' @export
-bulk_import.cosmos_container <- function(container, data, procname="_AzureCosmosR_bulkImport",
-    init_chunksize=1000, verbose=TRUE, ...)
+bulk_import.cosmos_container <- function(container, data, init_chunksize=1000, verbose=TRUE,
+    procname="_AzureCosmosR_bulkImport", ...)
 {
     # create the stored procedure if necessary
     res <- tryCatch(create_stored_procedure(container, procname,

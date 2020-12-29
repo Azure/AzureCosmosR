@@ -21,6 +21,7 @@ Imports:
     uuid,
     vctrs (>= 0.3.0)
 Suggests:
+    AzureTableStor,
     testthat,
     knitr,
     rmarkdown
