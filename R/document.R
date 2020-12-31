@@ -101,6 +101,7 @@ print.cosmos_document <- function(x, ...)
 }
 
 
+#' @rdname do_cosmos_op
 #' @export
 do_cosmos_op.cosmos_document <- function(object, path="", resource_type="docs", resource_link="", headers=list(), ...)
 {

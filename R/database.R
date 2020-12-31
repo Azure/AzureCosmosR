@@ -1,9 +1,22 @@
+#' Methods for working with Cosmos DB databases
+#'
+#' @param endpoint A Cosmos DB endpoint object as obtained from `cosmos_endpoint`, or for `delete_cosmos_database.cosmos_database`, the database object.
+#' @param name The name of the Cosmos DB database.
+#' @param autoscale_maxRUs,manual_RUs For `create_cosmos_database`, optional parameters for the maximum request units (RUs) allowed. See the Cosmos DB documentation for more details.
+#' @param headers For `create_cosmos_database`, optional HTTP headers to include in the request.
+#' @param confirm For `delete_cosmos_database`, whether to ask for confirmation before deleting.
+#' @param ... Arguments passed to lower-level functions.
+#' @details
+#' These are methods for managing Cosmos DB databases using the core (SQL) API.
+#' @aliases cosmos_database
+#' @rdname cosmos_database
 #' @export
 get_cosmos_database <- function(endpoint, ...)
 {
     UseMethod("get_cosmos_database")
 }
 
+#' @rdname cosmos_database
 #' @export
 get_cosmos_database.cosmos_endpoint <- function(endpoint, name, ...)
 {
@@ -16,12 +29,14 @@ get_cosmos_database.cosmos_endpoint <- function(endpoint, name, ...)
 }
 
 
+#' @rdname cosmos_database
 #' @export
 create_cosmos_database <- function(endpoint, ...)
 {
     UseMethod("create_cosmos_database")
 }
 
+#' @rdname cosmos_database
 #' @export
 create_cosmos_database.cosmos_endpoint <- function(endpoint, name, autoscale_maxRUs=NULL, manual_RUs=NULL, headers=list(), ...)
 {
@@ -39,12 +54,14 @@ create_cosmos_database.cosmos_endpoint <- function(endpoint, name, autoscale_max
 }
 
 
+#' @rdname cosmos_database
 #' @export
 delete_cosmos_database <- function(endpoint, ...)
 {
     UseMethod("delete_cosmos_database")
 }
 
+#' @rdname cosmos_database
 #' @export
 delete_cosmos_database.cosmos_endpoint <- function(endpoint, name, confirm=TRUE, ...)
 {
@@ -56,6 +73,7 @@ delete_cosmos_database.cosmos_endpoint <- function(endpoint, name, confirm=TRUE,
     invisible(process_cosmos_response(res))
 }
 
+#' @rdname cosmos_database
 #' @export
 delete_cosmos_database.cosmos_database <- function(endpoint, ...)
 {
@@ -63,12 +81,14 @@ delete_cosmos_database.cosmos_database <- function(endpoint, ...)
 }
 
 
+#' @rdname cosmos_database
 #' @export
 list_cosmos_databases <- function(endpoint, ...)
 {
     UseMethod("list_cosmos_databases")
 }
 
+#' @rdname cosmos_database
 #' @export
 list_cosmos_databases.cosmos_endpoint <- function(endpoint, ...)
 {
@@ -91,6 +111,7 @@ print.cosmos_database <- function(x, ...)
     invisible(x)
 }
 
+#' @rdname do_cosmos_op
 #' @export
 do_cosmos_op.cosmos_database <- function(object, path="", resource_type="dbs", resource_link="", ...)
 {

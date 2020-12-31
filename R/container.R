@@ -1,9 +1,30 @@
+#' Methods for working with Cosmos DB containers (tables)
+#'
+#' @param database A Cosmos DB database object, as obtained from `get_cosmos_database` or `create_cosmos_database`, or for `delete_cosmos_container.cosmos_container`, the container object.
+#' @param name The name of the container.
+#' @param partition_key For `create_cosmos_container`, the name of the partition key.
+#' @param partition_version For `create_cosmos_container`, the partition version. Can be either 1 or 2. Version 2 supports large partition key values (longer than 100 bytes) but requires API version `2018-12-31` or later. Use version 1 if the container needs to be accessible to older Cosmos DB SDKs.
+#' @param autoscale_maxRUs,manual_RUs For `create_cosmos_container`, optional parameters for the maximum request units (RUs) allowed. See the Cosmos DB documentation for more details.
+#' @param headers For `create_cosmos_container`, optional HTTP headers to include in the request.
+#' @param confirm For `delete_cosmos_container`, whether to ask for confirmation before deleting.
+#' @param ... Arguments passed to lower-level functions.
+#' @details
+#' These are methods for working with Cosmos DB containers (tables) using the core (SQL) API.
+#'
+#' `get_cosmos_container`, `create_cosmos_container`, `delete_cosmos_container` and `list_cosmos_containers` provide basic container management functionality.
+#'
+#' `get_partition_key` returns the name of the partition key column in the container, and `list_key_values` returns a vector of the distinct values for this column. These are useful when working with queries that have to be mapped across partitions.
+#' @seealso
+#' [cosmos_container], [query_documents]
+#' @aliases cosmos_container
+#' @rdname cosmos_container
 #' @export
 get_cosmos_container <- function(database, ...)
 {
     UseMethod("get_cosmos_container")
 }
 
+#' @rdname cosmos_container
 #' @export
 get_cosmos_container.cosmos_database <- function(database, name, ...)
 {
@@ -16,12 +37,14 @@ get_cosmos_container.cosmos_database <- function(database, name, ...)
 }
 
 
+#' @rdname cosmos_container
 #' @export
 create_cosmos_container <- function(database, ...)
 {
     UseMethod("create_cosmos_container")
 }
 
+#' @rdname cosmos_container
 #' @export
 create_cosmos_container.cosmos_database <- function(database, name, partition_key, partition_version=2,
     autoscale_maxRUs=NULL, manual_RUs=NULL, headers=list(), ...)
@@ -50,12 +73,14 @@ create_cosmos_container.cosmos_database <- function(database, name, partition_ke
 }
 
 
+#' @rdname cosmos_container
 #' @export
 delete_cosmos_container <- function(database, ...)
 {
     UseMethod("delete_cosmos_container")
 }
 
+#' @rdname cosmos_container
 #' @export
 delete_cosmos_container.cosmos_database <- function(database, name, confirm=TRUE, ...)
 {
@@ -67,6 +92,7 @@ delete_cosmos_container.cosmos_database <- function(database, name, confirm=TRUE
     invisible(process_cosmos_response(res))
 }
 
+#' @rdname cosmos_container
 #' @export
 delete_cosmos_container.cosmos_container <- function(database, ...)
 {
@@ -74,12 +100,14 @@ delete_cosmos_container.cosmos_container <- function(database, ...)
 }
 
 
+#' @rdname cosmos_container
 #' @export
 list_cosmos_containers <- function(database, ...)
 {
     UseMethod("list_cosmos_containers")
 }
 
+#' @rdname cosmos_container
 #' @export
 list_cosmos_containers.cosmos_database <- function(database, ...)
 {
@@ -92,12 +120,14 @@ list_cosmos_containers.cosmos_database <- function(database, ...)
 }
 
 
+#' @rdname cosmos_container
 #' @export
 get_partition_key <- function(container)
 {
     UseMethod("get_partition_key")
 }
 
+#' @rdname cosmos_container
 #' @export
 get_partition_key.cosmos_container <- function(container)
 {
@@ -118,6 +148,7 @@ print.cosmos_container <- function(x, ...)
     invisible(x)
 }
 
+#' @rdname do_cosmos_op
 #' @export
 do_cosmos_op.cosmos_container <- function(object, path="", resource_type="colls", resource_link="", ...)
 {
@@ -130,14 +161,16 @@ do_cosmos_op.cosmos_container <- function(object, path="", resource_type="colls"
 }
 
 
+#' @rdname cosmos_container
 #' @export
-get_key_values <- function(container)
+list_key_values <- function(container)
 {
     UseMethod("get_key_values")
 }
 
+#' @rdname cosmos_container
 #' @export
-get_key_values.cosmos_container <- function(container)
+list_key_values.cosmos_container <- function(container)
 {
     key <- get_partition_key(container)[1]
     qry <- sprintf("select distinct value %s.%s from %s", container$id, key, container$id)
