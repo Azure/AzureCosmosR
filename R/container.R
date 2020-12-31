@@ -1,7 +1,7 @@
 #' Methods for working with Cosmos DB containers (tables)
 #'
 #' @param database A Cosmos DB database object, as obtained from `get_cosmos_database` or `create_cosmos_database`, or for `delete_cosmos_container.cosmos_container`, the container object.
-#' @param name The name of the container.
+#' @param name,container The name of the container.
 #' @param partition_key For `create_cosmos_container`, the name of the partition key.
 #' @param partition_version For `create_cosmos_container`, the partition version. Can be either 1 or 2. Version 2 supports large partition key values (longer than 100 bytes) but requires API version `2018-12-31` or later. Use version 1 if the container needs to be accessible to older Cosmos DB SDKs.
 #' @param autoscale_maxRUs,manual_RUs For `create_cosmos_container`, optional parameters for the maximum request units (RUs) allowed. See the Cosmos DB documentation for more details.

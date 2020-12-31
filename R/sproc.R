@@ -84,7 +84,7 @@ delete_stored_procedure <- function(container, ...)
 #' @export
 delete_stored_procedure.cosmos_container <- function(container, name, confirm=TRUE, ...)
 {
-    if(!delete_confirmed(confirm, id, "stored procedure"))
+    if(!delete_confirmed(confirm, name, "stored procedure"))
         return(invisible(NULL))
 
     path <- file.path("sprocs", name)

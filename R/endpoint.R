@@ -69,7 +69,7 @@ call_cosmos_endpoint <- function(endpoint, path, resource_type, resource_link,
     http_verb <- match.arg(http_verb)
     headers$`x-ms-version` <- endpoint$api_version
     url <- endpoint$host
-    url$path <- gsub("/{2,}", "/", URLencode(enc2utf8(path)))
+    url$path <- gsub("/{2,}", "/", utils::URLencode(enc2utf8(path)))
     if(!AzureRMR::is_empty(options))
         url$query <- options
 

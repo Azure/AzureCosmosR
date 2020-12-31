@@ -57,7 +57,7 @@ list_key_values(container)
 
 \item{...}{Arguments passed to lower-level functions.}
 
-\item{name}{The name of the container.}
+\item{name, container}{The name of the container.}
 
 \item{partition_key}{For \code{create_cosmos_container}, the name of the partition key.}
 

@@ -17,6 +17,6 @@ sign_cosmos_request <- function(key, verb, resource_type, resource_link, date)
         sep="\n"
     )
     sig <- sign_sha256(string_to_sign, key$value)
-    URLencode(sprintf("type=%s&ver=1.0&sig=%s", key$type, sig), reserved=TRUE)
+    utils::URLencode(sprintf("type=%s&ver=1.0&sig=%s", key$type, sig), reserved=TRUE)
 }
 
