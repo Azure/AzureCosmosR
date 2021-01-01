@@ -11,7 +11,7 @@
 \alias{delete_cosmos_database.cosmos_database}
 \alias{list_cosmos_databases}
 \alias{list_cosmos_databases.cosmos_endpoint}
-\title{Methods for working with Cosmos DB databases}
+\title{Methods for working with Azure Cosmos DB databases}
 \usage{
 get_cosmos_database(endpoint, ...)
 
@@ -41,18 +41,16 @@ list_cosmos_databases(endpoint, ...)
 \arguments{
 \item{endpoint}{A Cosmos DB endpoint object as obtained from \code{cosmos_endpoint}, or for \code{delete_cosmos_database.cosmos_database}, the database object.}
 
-\item{...}{Arguments passed to lower-level functions.}
-
 \item{name}{The name of the Cosmos DB database.}
 
 \item{autoscale_maxRUs, manual_RUs}{For \code{create_cosmos_database}, optional parameters for the maximum request units (RUs) allowed. See the Cosmos DB documentation for more details.}
 
-\item{headers}{For \code{create_cosmos_database}, optional HTTP headers to include in the request.}
+\item{headers, ...}{Optional arguments passed to lower-level functions.}
 
 \item{confirm}{For \code{delete_cosmos_database}, whether to ask for confirmation before deleting.}
 }
 \description{
-Methods for working with Cosmos DB databases
+Methods for working with Azure Cosmos DB databases
 }
 \details{
 These are methods for managing Cosmos DB databases using the core (SQL) API.

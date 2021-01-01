@@ -14,7 +14,7 @@ Depends:
     R (>= 3.3)
 Imports: 
     utils,
-    AzureRMR (>= 2.0.0),
+    AzureRMR (>= 2.3.3),
     openssl,
     jsonlite,
     httr,
@@ -22,11 +22,12 @@ Imports:
     vctrs (>= 0.3.0)
 Suggests:
     AzureTableStor,
+    mongolite,
     DBI,
     odbc,
     dplyr,
     testthat,
     knitr,
     rmarkdown
-Roxygen: list(markdown=TRUE)
+Roxygen: list(markdown=TRUE, r6=FALSE)
 RoxygenNote: 7.1.1

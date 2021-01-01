@@ -1,21 +1,39 @@
-#' Methods for working with Cosmos DB containers (tables)
+#' Methods for working with Azure Cosmos DB containers
 #'
 #' @param database A Cosmos DB database object, as obtained from `get_cosmos_database` or `create_cosmos_database`, or for `delete_cosmos_container.cosmos_container`, the container object.
 #' @param name,container The name of the container.
 #' @param partition_key For `create_cosmos_container`, the name of the partition key.
 #' @param partition_version For `create_cosmos_container`, the partition version. Can be either 1 or 2. Version 2 supports large partition key values (longer than 100 bytes) but requires API version `2018-12-31` or later. Use version 1 if the container needs to be accessible to older Cosmos DB SDKs.
 #' @param autoscale_maxRUs,manual_RUs For `create_cosmos_container`, optional parameters for the maximum request units (RUs) allowed. See the Cosmos DB documentation for more details.
-#' @param headers For `create_cosmos_container`, optional HTTP headers to include in the request.
 #' @param confirm For `delete_cosmos_container`, whether to ask for confirmation before deleting.
-#' @param ... Arguments passed to lower-level functions.
+#' @param headers,... Optional arguments passed to lower-level functions.
 #' @details
-#' These are methods for working with Cosmos DB containers (tables) using the core (SQL) API.
+#' These are methods for working with Cosmos DB containers using the core (SQL) API. A container is analogous to a table in SQL, or a collection in MongoDB.
 #'
 #' `get_cosmos_container`, `create_cosmos_container`, `delete_cosmos_container` and `list_cosmos_containers` provide basic container management functionality.
 #'
-#' `get_partition_key` returns the name of the partition key column in the container, and `list_key_values` returns a vector of the distinct values for this column. These are useful when working with queries that have to be mapped across partitions.
+#' `get_partition_key` returns the name of the partition key column in the container, and `list_key_values` returns all the distinct values for this column. These are useful when working with queries that have to be mapped across partitions.
+#' @return
+#' For `get_cosmos_container` and `create_cosmos_container`, an object of class `cosmos_container. For `list_cosmos_container`, a list of such objects.
+#'
+#' For `get_partition_key`, the name of the partition key column as a string. For `list_key_values`, a character vector of all the values of the partition key.
 #' @seealso
-#' [cosmos_container], [query_documents]
+#' [cosmos_container], [query_documents], [bulk_import], [bulk_delete]
+#' @examples
+#' \dontrun{
+#'
+#' endp <- cosmos_endpoint("https://myaccount.documents.azure.com:443/", key="mykey")
+#' db <- get_cosmos_database(endp, "mydatabase")
+#'
+#' create_cosmos_container(db, "mycontainer", partition_key="sex")
+#'
+#' list_cosmos_containers(db)
+#'
+#' cont <- get_cosmos_container(db, "mycontainer")
+#'
+#' delete_cosmos_container(cont)
+#'
+#' }
 #' @aliases cosmos_container
 #' @rdname cosmos_container
 #' @export

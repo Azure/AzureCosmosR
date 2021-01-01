@@ -6,7 +6,7 @@
 \alias{process_cosmos_response}
 \alias{process_cosmos_response.response}
 \alias{process_cosmos_response.list}
-\title{Client endpoint to Cosmos DB core API}
+\title{Client endpoint for Azure Cosmos DB core API}
 \usage{
 cosmos_endpoint(
   host,
@@ -50,7 +50,7 @@ process_cosmos_response(response, ...)
 \arguments{
 \item{host}{For \code{cosmos_endpoint}, the host URL for the endpoint. Typically of the form \verb{https://\{account-name\}.documents.azure.com:443/} (note the port number).}
 
-\item{key}{For \code{cosmos_endpoint}, a string containing the access key (password) for the endpoint.}
+\item{key}{For \code{cosmos_endpoint}, a string containing the access key (password) for the endpoint. Can be either a read-write or read-only key.}
 
 \item{key_type}{For \code{cosmos_endpoint}, the type of key, either "master" or "resource".}
 
@@ -96,17 +96,17 @@ For \code{process_cosmos_response} and a single response object, the content of 
 For \code{process_cosmos_response} and a list of response objects, a list containing the individual contents of each response.
 }
 \description{
-Client endpoint to Cosmos DB core API
+Client endpoint for Azure Cosmos DB core API
 }
 \details{
-These functions are the basis of the Cosmos DB API client framework provided by AzureCosmosR. The \code{cosmos_endpoint} function returns a client object, which can then be passed to other functions for querying databases and containers. The \code{call_cosmos_endpoint} function sends calls to the REST endpoint, the results of which are then processed by \code{process_cosmos_response}.
+These functions are the basis of the SQL API client framework provided by AzureCosmosR. The \code{cosmos_endpoint} function returns a client object, which can then be passed to other functions for querying databases and containers. The \code{call_cosmos_endpoint} function sends calls to the REST endpoint, the results of which are then processed by \code{process_cosmos_response}.
 
 In most cases, you should not have to use \code{call_cosmos_endpoint} directly. Instead, use \code{do_cosmos_op} which provides a slightly higher-level interface to the API, by providing sensible defaults for the \code{resource_type} and\code{resource_link} arguments and partially filling in the request path.
 
-As an alternative to AzureCosmosR, you can also use the ODBC protocol to interface with Cosmos DB. This lets you talk to the API in a manner similar to any SQL database. One disadvantage of the ODBC interface is that it does not support nested document fields; such fields will be flattened into a string. An advantage is that it fully supports cross-partition queries, which AzureCosmosR currently only partially supports.
+As an alternative to AzureCosmosR, you can also use the ODBC protocol to interface with the SQL API. By instaling a suitable ODBC driver, you can then talk to Cosmos DB in a manner similar to any SQL database. An advantage of the ODBC interface is that it fully supports cross-partition queries, which AzureCosmosR currently only partially supports. A disadvantage is that it does not support nested document fields; such fields will be flattened into a string.
 
 Note that AzureCosmosR is a framework for communicating directly with the \emph{core} Cosmos DB client API, also known as the "SQL" API. Cosmos DB provides other APIs as options when creating an account, such as Cassandra, MongoDB, table storage and Gremlin. These APIs are not supported by AzureCosmosR, but you can use other R packages for working with them. For example, you can use AzureTableStor to work with the table storage API, or mongolite to work with the MongoDB API.
 }
 \seealso{
-\link{do_cosmos_op}, \link{cosmos_database}, \link{cosmos_container}
+\link{do_cosmos_op}, \link{cosmos_database}, \link{cosmos_container}, \link{az_cosmosdb}
 }

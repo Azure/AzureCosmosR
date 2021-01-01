@@ -1,3 +1,19 @@
+#' Methods for working with Azure Cosmos DB documents
+#'
+#' @param container A Cosmos DB container object, as obtained by `get_cosmos_container` or `create_cosmos_container`.
+#' @param id The document ID.
+#' @param partition_key For `get_document` and `delete_document`, the value of the partition key for the desired document. For `list_documents`, restrict the returned list only to documents with this key value.
+#' @param data For `create_document`, the document data. This can be either a string containing JSON text, or a (possibly nested) list containing the parsed JSON.
+#' @param metadata For `get_document` and `list_documents`, whether to include Cosmos DB document metadata in the result.
+#' @param as_data_frame For `list_documents`, whether to return a data frame or a list of Cosmos DB document objects.
+#' @param confirm For `delete_cosmos_container`, whether to ask for confirmation before deleting.
+#' @param headers,... Optional arguments passed to lower-level functions.
+#' @details
+#' These are low-level functions for working with individual documents in a Cosmos DB container. In most cases you will want to use [query_documents] to issue queries against the container, or [bulk_import] and [bulk_delete] to create and delete documents.
+#' @seealso
+#' [query_documents], [bulk_import], [bulk_delete], [cosmos_container]
+#' @aliases cosmos_document
+#' @rdname cosmos_document
 #' @export
 get_document <- function(container, ...)
 {
@@ -18,12 +34,14 @@ get_document.cosmos_container <- function(container, id, partition_key, metadata
 }
 
 
+#' @rdname cosmos_document
 #' @export
 create_document <- function(container, ...)
 {
     UseMethod("create_document")
 }
 
+#' @rdname cosmos_document
 #' @export
 create_document.cosmos_container <- function(container, data, headers=list(), ...)
 {
@@ -48,12 +66,14 @@ create_document.cosmos_container <- function(container, data, headers=list(), ..
 }
 
 
+#' @rdname cosmos_document
 #' @export
 list_documents <- function(container, ...)
 {
     UseMethod("list_documents")
 }
 
+#' @rdname cosmos_document
 #' @export
 list_documents.cosmos_container <- function(container, partition_key=NULL, as_data_frame=FALSE, metadata=TRUE,
     headers=list(), ...)
@@ -67,12 +87,14 @@ list_documents.cosmos_container <- function(container, partition_key=NULL, as_da
 }
 
 
+#' @rdname cosmos_document
 #' @export
 delete_document <- function(container, ...)
 {
     UseMethod("delete_document")
 }
 
+#' @rdname cosmos_document
 #' @export
 delete_document.cosmos_container <- function(container, id, partition_key, headers=list(), confirm=TRUE, ...)
 {
@@ -85,6 +107,7 @@ delete_document.cosmos_container <- function(container, id, partition_key, heade
     invisible(process_cosmos_response(res))
 }
 
+#' @rdname cosmos_document
 #' @export
 delete_document.cosmos_document <- function(container, ...)
 {
