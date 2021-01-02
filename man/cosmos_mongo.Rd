@@ -18,13 +18,13 @@ cosmos_mongo_connection(endpoint, ...)
 \method{cosmos_mongo_connection}{cosmos_mongo_endpoint}(endpoint, collection, database, ...)
 }
 \arguments{
-\item{host}{for \code{cosmos_mongo_endpoint}, the URL of the Cosmos DB MongoDB endpoint. Usually of the form "https://{account-name}.mongo.cosmos.azure.com:443/".}
+\item{host}{For \code{cosmos_mongo_endpoint}, the URL of the Cosmos DB MongoDB endpoint. Usually of the form "https://{account-name}.mongo.cosmos.azure.com:443/".}
 
-\item{key}{A string containing the access key (password) for the endpoint. Can be either a read-write or read-only key.}
+\item{key}{For \code{cosmos_mongo_endpoint}, a string containing the access key (password) for the endpoint. Can be either a read-write or read-only key.}
 
-\item{mongo_options}{A named list containing any additional parameters for the Mongo DB connection string.}
+\item{mongo_options}{For \code{cosmos_mongo_endpoint}, a named list containing any additional parameters for the MongoDB connection string.}
 
-\item{connection_string}{Optionally, the full connection string for the MongoDB endpoint. If this is supplied, all other arguments are ignored.}
+\item{connection_string}{Alternatively, the full connection string for the MongoDB endpoint. If this is supplied, all other arguments to \code{cosmos_mongo_endpoint} are ignored. Note that if you already have the full connection string, you most likely do not need AzureCosmosR and can call \code{mongolite::mongo} directly.}
 
 \item{endpoint}{For \code{cosmos_mongo_connection}, a MongoDB endpoint object as obtained from \code{cosmos_mongo_endpoint}.}
 
@@ -41,7 +41,17 @@ For \code{cosmos_mongo_connection}, an object of class \code{mongolite::mongo} w
 MongoDB endpoint for Azure Cosmos DB
 }
 \details{
-These functions are the basis of the AzureCosmosR MongoDB API client. They serve as a bridge between the Azure endpoint and the MongoDB connection functionality provided by the mongolite package.
+These functions act as a bridge between the Azure resource and the functionality provided by the mongolite package.
+}
+\examples{
+\dontrun{
+
+mendp <- cosmos_mongo_endpoint("https://mymongoacct.mongo.cosmos.azure.com:443",
+    key="mykey")
+
+cosmos_mongo_connection(mendp, "mycollection", "mydatabase")
+
+}
 }
 \seealso{
 \link{az_cosmosdb}, \link[mongolite:mongo]{mongolite::mongo}

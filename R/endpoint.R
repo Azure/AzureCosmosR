@@ -1,8 +1,8 @@
 #' Client endpoint for Azure Cosmos DB core API
 #'
 #' @param host For `cosmos_endpoint`, the host URL for the endpoint. Typically of the form `https://{account-name}.documents.azure.com:443/` (note the port number).
-#' @param key For `cosmos_endpoint`, a string containing the access key (password) for the endpoint. Can be either a read-write or read-only key.
-#' @param key_type For `cosmos_endpoint`, the type of key, either "master" or "resource".
+#' @param key For `cosmos_endpoint`, a string containing the password for the endpoint. This can be either a master key or a resource token.
+#' @param key_type For `cosmos_endpoint`, the type of the key, either "master" or "resource".
 #' @param api_version For `cosmos_endpoint`, the API version to use.
 #' @param endpoint For `call_cosmos_endpoint`, a Cosmos DB endpoint object, as returned by `cosmos_endpoint`.
 #' @param path For `call_cosmos_endpoint`, the path in the URL for the endpoint call.
@@ -11,6 +11,7 @@
 #' @param options For `call_cosmos_endpoint`, query options to include in the request URL.
 #' @param headers For `call_cosmos_endpoint`, any HTTP headers to include in the request. You don't need to include authorization headers as `call_cosmos_endpoint` will take care of the details.
 #' @param body For `call_cosmos_endpoint`, the body of the request if any.
+#' @param encode For `call_cosmos_endpoint`, the encoding (really content-type) of the request body. The Cosmos DB REST API uses JSON, so there should rarely be a need to change this argument.
 #' @param do_continuations For `call_cosmos_endpoint`, whether to automatically handle paged responses. If FALSE, only the initial response is returned.
 #' @param http_verb For `call_cosmos_endpoint`, the HTTP verb for the request. One of "GET", "POST", "PUT", "PATCH", "HEAD" or "DELETE".
 #' @param num_retries For `call_cosmos_endpoint`, how many times to retry a failed request. Useful for dealing with rate limiting issues.
@@ -37,6 +38,18 @@
 #' For `process_cosmos_response` and a list of response objects, a list containing the individual contents of each response.
 #' @seealso
 #' [do_cosmos_op], [cosmos_database], [cosmos_container], [az_cosmosdb]
+#'
+#' [httr::VERB], which is what carries out the low-level work of sending the HTTP request.
+#' @examples
+#' \dontrun{
+#'
+#' endp <- cosmos_endpoint("https://myaccount.documents.azure.com:443/", key="mykey")
+#'
+#' # properties for the Cosmos DB account
+#' call_cosmos_endpoint(endp, "", "", "") %>%
+#'     process_cosmos_response()
+#'
+#' }
 #' @rdname cosmos_endpoint
 #' @export
 cosmos_endpoint <- function(host, key, key_type=c("master", "resource"),
@@ -63,7 +76,7 @@ print.cosmos_endpoint <- function(x, ...)
 #' @rdname cosmos_endpoint
 #' @export
 call_cosmos_endpoint <- function(endpoint, path, resource_type, resource_link,
-    options=list(), headers=list(), body=NULL, do_continuations=TRUE,
+    options=list(), headers=list(), body=NULL, encode="json", do_continuations=TRUE,
     http_verb=c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"), num_retries=10, ...)
 {
     http_verb <- match.arg(http_verb)
@@ -100,7 +113,7 @@ call_cosmos_endpoint <- function(endpoint, path, resource_type, resource_link,
 }
 
 
-do_request <- function(url, key, resource_type, resource_link, headers=list(), body=NULL,
+do_request <- function(url, key, resource_type, resource_link, headers=list(), body=NULL, encode="json",
     http_verb=c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"), num_retries=10,
     ...)
 {
@@ -116,7 +129,8 @@ do_request <- function(url, key, resource_type, resource_link, headers=list(), b
             resource_link,
             now
         )
-        response <- tryCatch(httr::VERB(http_verb, url, do.call(httr::add_headers, headers), body=body, ...),
+        response <- tryCatch(httr::VERB(http_verb, url, do.call(httr::add_headers, headers),
+                                        body=body, encode=encode, ...),
                              error=function(e) e)
         if(!retry_transfer(response))  # retry on curl errors (except host not found) and http 429 responses
             break

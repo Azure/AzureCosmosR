@@ -16,36 +16,36 @@
 \alias{delete_stored_procedure.cosmos_stored_procedure}
 \title{Methods for working with Azure Cosmos DB stored procedures}
 \usage{
-list_stored_procedures(container, ...)
+list_stored_procedures(object, ...)
 
-create_stored_procedure(container, ...)
+create_stored_procedure(object, ...)
 
-\method{create_stored_procedure}{cosmos_container}(container, name, body, ...)
+\method{create_stored_procedure}{cosmos_container}(object, procname, body, ...)
 
-call_stored_procedure(container, ...)
+call_stored_procedure(object, ...)
 
-\method{call_stored_procedure}{cosmos_container}(container, name, parameters = list(), ...)
+\method{call_stored_procedure}{cosmos_container}(object, procname, parameters = list(), ...)
 
-\method{call_stored_procedure}{cosmos_stored_procedure}(container, ...)
+\method{call_stored_procedure}{cosmos_stored_procedure}(object, ...)
 
-replace_stored_procedure(container, ...)
+replace_stored_procedure(object, ...)
 
-\method{replace_stored_procedure}{cosmos_container}(container, name, body, ...)
+\method{replace_stored_procedure}{cosmos_container}(object, procname, body, ...)
 
-\method{replace_stored_procedure}{cosmos_stored_procedure}(container, ...)
+\method{replace_stored_procedure}{cosmos_stored_procedure}(object, body, ...)
 
-delete_stored_procedure(container, ...)
+delete_stored_procedure(object, ...)
 
-\method{delete_stored_procedure}{cosmos_container}(container, name, confirm = TRUE, ...)
+\method{delete_stored_procedure}{cosmos_container}(object, procname, confirm = TRUE, ...)
 
-\method{delete_stored_procedure}{cosmos_stored_procedure}(container, ...)
+\method{delete_stored_procedure}{cosmos_stored_procedure}(object, ...)
 }
 \arguments{
-\item{container}{A Cosmos DB container object, as obtained by \code{get_cosmos_container} or \code{create_cosmos_container}, or for `delete_stored_procedure.cosmos_stored_procedure, the stored procedure object.}
+\item{object}{A Cosmos DB container object, as obtained by \code{get_cosmos_container} or \code{create_cosmos_container}, or for `delete_stored_procedure.cosmos_stored_procedure, the stored procedure object.}
 
 \item{...}{Optional arguments passed to lower-level functions.}
 
-\item{name}{The name of the stored procedure.}
+\item{procname}{The name of the stored procedure.}
 
 \item{body}{For \code{create_stored_procedure} and \code{replace_stored_procedure}, the body of the stored procedure as text.}
 

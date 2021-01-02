@@ -12,16 +12,16 @@
 \alias{delete_document.cosmos_document}
 \title{Methods for working with Azure Cosmos DB documents}
 \usage{
-get_document(container, ...)
+get_document(object, ...)
 
-create_document(container, ...)
+create_document(object, ...)
 
-\method{create_document}{cosmos_container}(container, data, headers = list(), ...)
+\method{create_document}{cosmos_container}(object, data, headers = list(), ...)
 
-list_documents(container, ...)
+list_documents(object, ...)
 
 \method{list_documents}{cosmos_container}(
-  container,
+  object,
   partition_key = NULL,
   as_data_frame = FALSE,
   metadata = TRUE,
@@ -29,10 +29,10 @@ list_documents(container, ...)
   ...
 )
 
-delete_document(container, ...)
+delete_document(object, ...)
 
 \method{delete_document}{cosmos_container}(
-  container,
+  object,
   id,
   partition_key,
   headers = list(),
@@ -40,10 +40,10 @@ delete_document(container, ...)
   ...
 )
 
-\method{delete_document}{cosmos_document}(container, ...)
+\method{delete_document}{cosmos_document}(object, ...)
 }
 \arguments{
-\item{container}{A Cosmos DB container object, as obtained by \code{get_cosmos_container} or \code{create_cosmos_container}.}
+\item{object}{A Cosmos DB container object, as obtained by \code{get_cosmos_container} or \code{create_cosmos_container}.}
 
 \item{data}{For \code{create_document}, the document data. This can be either a string containing JSON text, or a (possibly nested) list containing the parsed JSON.}
 
@@ -51,7 +51,7 @@ delete_document(container, ...)
 
 \item{partition_key}{For \code{get_document} and \code{delete_document}, the value of the partition key for the desired document. For \code{list_documents}, restrict the returned list only to documents with this key value.}
 
-\item{as_data_frame}{For \code{list_documents}, whether to return a data frame or a list of Cosmos DB document objects.}
+\item{as_data_frame}{For \code{list_documents}, whether to return a data frame or a list of Cosmos DB document objects. Note that the default value is FALSE, unlike \link{query_documents}.}
 
 \item{metadata}{For \code{get_document} and \code{list_documents}, whether to include Cosmos DB document metadata in the result.}
 
@@ -59,11 +59,38 @@ delete_document(container, ...)
 
 \item{confirm}{For \code{delete_cosmos_container}, whether to ask for confirmation before deleting.}
 }
+\value{
+\code{get_document} and \code{create_document} return an object of S3 class \code{cosmos_document}. The actual document contents can be found in the \code{data} component of this object.
+
+\code{list_documents} returns a list of \code{cosmos_document} objects if \code{as_data_frame} is FALSE, and a data frame otherwise.
+}
 \description{
 Methods for working with Azure Cosmos DB documents
 }
 \details{
 These are low-level functions for working with individual documents in a Cosmos DB container. In most cases you will want to use \link{query_documents} to issue queries against the container, or \link{bulk_import} and \link{bulk_delete} to create and delete documents.
+}
+\examples{
+\dontrun{
+
+endp <- cosmos_endpoint("https://myaccount.documents.azure.com:443/", key="mykey")
+db <- get_cosmos_database(endp, "mydatabase")
+
+cont <- get_cosmos_container(db, "mycontainer")
+
+# a list of document objects
+list_documents(cont)
+
+# a data frame
+list_documents(cont, as_data_frame=TRUE)
+
+# a single document
+doc <- get_document(cont, "mydocumentid")
+doc$data
+
+delete_document(doc)
+
+}
 }
 \seealso{
 \link{query_documents}, \link{bulk_import}, \link{bulk_delete}, \link{cosmos_container}

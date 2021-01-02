@@ -4,6 +4,7 @@
 \alias{get_cosmos_container}
 \alias{cosmos_container}
 \alias{get_cosmos_container.cosmos_database}
+\alias{get_cosmos_container.cosmos_endpoint}
 \alias{create_cosmos_container}
 \alias{create_cosmos_container.cosmos_database}
 \alias{delete_cosmos_container}
@@ -11,21 +12,19 @@
 \alias{delete_cosmos_container.cosmos_container}
 \alias{list_cosmos_containers}
 \alias{list_cosmos_containers.cosmos_database}
-\alias{get_partition_key}
-\alias{get_partition_key.cosmos_container}
-\alias{list_key_values}
-\alias{list_key_values.cosmos_container}
 \title{Methods for working with Azure Cosmos DB containers}
 \usage{
-get_cosmos_container(database, ...)
+get_cosmos_container(object, ...)
 
-\method{get_cosmos_container}{cosmos_database}(database, name, ...)
+\method{get_cosmos_container}{cosmos_database}(object, container, ...)
 
-create_cosmos_container(database, ...)
+\method{get_cosmos_container}{cosmos_endpoint}(object, database, container, ...)
+
+create_cosmos_container(object, ...)
 
 \method{create_cosmos_container}{cosmos_database}(
-  database,
-  name,
+  object,
+  container,
   partition_key,
   partition_version = 2,
   autoscale_maxRUs = NULL,
@@ -34,28 +33,22 @@ create_cosmos_container(database, ...)
   ...
 )
 
-delete_cosmos_container(database, ...)
+delete_cosmos_container(object, ...)
 
-\method{delete_cosmos_container}{cosmos_database}(database, name, confirm = TRUE, ...)
+\method{delete_cosmos_container}{cosmos_database}(object, container, confirm = TRUE, ...)
 
-\method{delete_cosmos_container}{cosmos_container}(database, ...)
+\method{delete_cosmos_container}{cosmos_container}(object, ...)
 
-list_cosmos_containers(database, ...)
+list_cosmos_containers(object, ...)
 
-\method{list_cosmos_containers}{cosmos_database}(database, ...)
-
-get_partition_key(container)
-
-\method{get_partition_key}{cosmos_container}(container)
-
-list_key_values(container)
-
-\method{list_key_values}{cosmos_container}(container)
+\method{list_cosmos_containers}{cosmos_database}(object, ...)
 }
 \arguments{
-\item{database}{A Cosmos DB database object, as obtained from \code{get_cosmos_database} or \code{create_cosmos_database}, or for \code{delete_cosmos_container.cosmos_container}, the container object.}
+\item{object}{A Cosmos DB database object, as obtained from \code{get_cosmos_database} or \code{create_cosmos_database}, or for \code{delete_cosmos_container.cosmos_container}, the container object.}
 
-\item{name, container}{The name of the container.}
+\item{container}{The name of the container.}
+
+\item{database}{For \code{get_cosmos_container.cosmos_endpoint}, the name of the database that includes the container.}
 
 \item{partition_key}{For \code{create_cosmos_container}, the name of the partition key.}
 
@@ -69,8 +62,6 @@ list_key_values(container)
 }
 \value{
 For \code{get_cosmos_container} and \code{create_cosmos_container}, an object of class \verb{cosmos_container. For }list_cosmos_container`, a list of such objects.
-
-For \code{get_partition_key}, the name of the partition key column as a string. For \code{list_key_values}, a character vector of all the values of the partition key.
 }
 \description{
 Methods for working with Azure Cosmos DB containers
@@ -80,7 +71,7 @@ These are methods for working with Cosmos DB containers using the core (SQL) API
 
 \code{get_cosmos_container}, \code{create_cosmos_container}, \code{delete_cosmos_container} and \code{list_cosmos_containers} provide basic container management functionality.
 
-\code{get_partition_key} returns the name of the partition key column in the container, and \code{list_key_values} returns all the distinct values for this column. These are useful when working with queries that have to be mapped across partitions.
+\code{get_partition_key} returns the name of the partition key column in the container, and \code{list_partition_key_values} returns all the distinct values for this column. These are useful when working with queries that have to be mapped across partitions.
 }
 \examples{
 \dontrun{

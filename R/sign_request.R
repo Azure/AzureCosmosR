@@ -5,6 +5,9 @@ sign_sha256 <- function(string, key)
 
 sign_cosmos_request <- function(key, verb, resource_type, resource_link, date)
 {
+    if(key$type == "resource")
+        return(curl::curl_escape(key$value))
+
     if(inherits(date, "POSIXt"))
         date <- httr::http_date(date)
     string_to_sign <- paste(
@@ -17,6 +20,6 @@ sign_cosmos_request <- function(key, verb, resource_type, resource_link, date)
         sep="\n"
     )
     sig <- sign_sha256(string_to_sign, key$value)
-    utils::URLencode(sprintf("type=%s&ver=1.0&sig=%s", key$type, sig), reserved=TRUE)
+    curl::curl_escape(sprintf("type=%s&ver=1.0&sig=%s", key$type, sig))
 }
 

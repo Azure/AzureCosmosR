@@ -23,6 +23,7 @@ call_cosmos_endpoint(
   options = list(),
   headers = list(),
   body = NULL,
+  encode = "json",
   do_continuations = TRUE,
   http_verb = c("GET", "DELETE", "PUT", "POST", "PATCH", "HEAD"),
   num_retries = 10,
@@ -50,9 +51,9 @@ process_cosmos_response(response, ...)
 \arguments{
 \item{host}{For \code{cosmos_endpoint}, the host URL for the endpoint. Typically of the form \verb{https://\{account-name\}.documents.azure.com:443/} (note the port number).}
 
-\item{key}{For \code{cosmos_endpoint}, a string containing the access key (password) for the endpoint. Can be either a read-write or read-only key.}
+\item{key}{For \code{cosmos_endpoint}, a string containing the password for the endpoint. This can be either a master key or a resource token.}
 
-\item{key_type}{For \code{cosmos_endpoint}, the type of key, either "master" or "resource".}
+\item{key_type}{For \code{cosmos_endpoint}, the type of the key, either "master" or "resource".}
 
 \item{api_version}{For \code{cosmos_endpoint}, the API version to use.}
 
@@ -69,6 +70,8 @@ process_cosmos_response(response, ...)
 \item{headers}{For \code{call_cosmos_endpoint}, any HTTP headers to include in the request. You don't need to include authorization headers as \code{call_cosmos_endpoint} will take care of the details.}
 
 \item{body}{For \code{call_cosmos_endpoint}, the body of the request if any.}
+
+\item{encode}{For \code{call_cosmos_endpoint}, the encoding (really content-type) of the request body. The Cosmos DB REST API uses JSON, so there should rarely be a need to change this argument.}
 
 \item{do_continuations}{For \code{call_cosmos_endpoint}, whether to automatically handle paged responses. If FALSE, only the initial response is returned.}
 
@@ -107,6 +110,19 @@ As an alternative to AzureCosmosR, you can also use the ODBC protocol to interfa
 
 Note that AzureCosmosR is a framework for communicating directly with the \emph{core} Cosmos DB client API, also known as the "SQL" API. Cosmos DB provides other APIs as options when creating an account, such as Cassandra, MongoDB, table storage and Gremlin. These APIs are not supported by AzureCosmosR, but you can use other R packages for working with them. For example, you can use AzureTableStor to work with the table storage API, or mongolite to work with the MongoDB API.
 }
+\examples{
+\dontrun{
+
+endp <- cosmos_endpoint("https://myaccount.documents.azure.com:443/", key="mykey")
+
+# properties for the Cosmos DB account
+call_cosmos_endpoint(endp, "", "", "") \%>\%
+    process_cosmos_response()
+
+}
+}
 \seealso{
 \link{do_cosmos_op}, \link{cosmos_database}, \link{cosmos_container}, \link{az_cosmosdb}
+
+\link[httr:VERB]{httr::VERB}, which is what carries out the low-level work of sending the HTTP request.
 }

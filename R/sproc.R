@@ -1,7 +1,7 @@
 #' Methods for working with Azure Cosmos DB stored procedures
 #'
-#' @param container A Cosmos DB container object, as obtained by `get_cosmos_container` or `create_cosmos_container`, or for `delete_stored_procedure.cosmos_stored_procedure, the stored procedure object.
-#' @param name The name of the stored procedure.
+#' @param object A Cosmos DB container object, as obtained by `get_cosmos_container` or `create_cosmos_container`, or for `delete_stored_procedure.cosmos_stored_procedure, the stored procedure object.
+#' @param procname The name of the stored procedure.
 #' @param body For `create_stored_procedure` and `replace_stored_procedure`, the body of the stored procedure as text.
 #' @param parameters For `call_stored_procedure`, a list of parameters to pass to the procedure.
 #' @param confirm For `delete_cosmos_container`, whether to ask for confirmation before deleting.
@@ -32,114 +32,114 @@
 #' @aliases cosmos_stored_procedure
 #' @rdname cosmos_stored_procedure
 #' @export
-list_stored_procedures <- function(container, ...)
+list_stored_procedures <- function(object, ...)
 {
     UseMethod("list_stored_procedures")
 }
 
 #' @export
-list_stored_procedures.cosmos_container <- function(container, ...)
+list_stored_procedures.cosmos_container <- function(object, ...)
 {
-    res <- do_cosmos_op(container, "sprocs", "sprocs", "", ...)
+    res <- do_cosmos_op(object, "sprocs", "sprocs", "", ...)
     atts <- if(inherits(res, "response"))
         process_cosmos_response(res)$StoredProcedures
     else unlist(lapply(process_cosmos_response(res), `[[`, "StoredProcedures"), recursive=FALSE)
-    lapply(atts, as_stored_procedure, container=container)
+    lapply(atts, as_stored_procedure, container=object)
 }
 
 
 #' @rdname cosmos_stored_procedure
 #' @export
-create_stored_procedure <- function(container, ...)
+create_stored_procedure <- function(object, ...)
 {
     UseMethod("create_stored_procedure")
 }
 
 #' @rdname cosmos_stored_procedure
 #' @export
-create_stored_procedure.cosmos_container <- function(container, name, body, ...)
+create_stored_procedure.cosmos_container <- function(object, procname, body, ...)
 {
-    body <- list(id=name, body=paste0(body, collapse="\n"))
-    res <- do_cosmos_op(container, "sprocs", "sprocs", "", body=body, encode="json", http_verb="POST", ...)
+    body <- list(id=procname, body=paste0(body, collapse="\n"))
+    res <- do_cosmos_op(object, "sprocs", "sprocs", "", body=body, encode="json", http_verb="POST", ...)
     sproc <- process_cosmos_response(res)
-    invisible(as_stored_procedure(sproc, container))
+    invisible(as_stored_procedure(sproc, object))
 }
 
 
 #' @rdname cosmos_stored_procedure
 #' @export
-call_stored_procedure <- function(container, ...)
+call_stored_procedure <- function(object, ...)
 {
     UseMethod("call_stored_procedure")
 }
 
 #' @rdname cosmos_stored_procedure
 #' @export
-call_stored_procedure.cosmos_container <- function(container, name, parameters=list(), ...)
+call_stored_procedure.cosmos_container <- function(object, procname, parameters=list(), ...)
 {
-    path <- file.path("sprocs", name)
-    res <- do_cosmos_op(container, path, "sprocs", path, body=parameters, encode="json", http_verb="POST", ...)
+    path <- file.path("sprocs", procname)
+    res <- do_cosmos_op(object, path, "sprocs", path, body=parameters, encode="json", http_verb="POST", ...)
     process_cosmos_response(res)
 }
 
 #' @rdname cosmos_stored_procedure
 #' @export
-call_stored_procedure.cosmos_stored_procedure <- function(container, ...)
+call_stored_procedure.cosmos_stored_procedure <- function(object, ...)
 {
-    call_stored_procedure(container$container, container$id, ...)
+    call_stored_procedure(object$container, object$id, ...)
 }
 
 
 #' @rdname cosmos_stored_procedure
 #' @export
-replace_stored_procedure <- function(container, ...)
+replace_stored_procedure <- function(object, ...)
 {
     UseMethod("replace_stored_procedure")
 }
 
 #' @rdname cosmos_stored_procedure
 #' @export
-replace_stored_procedure.cosmos_container <- function(container, name, body, ...)
+replace_stored_procedure.cosmos_container <- function(object, procname, body, ...)
 {
-    body <- list(id=name, body=body)
-    path <- file.path("sprocs", name)
-    res <- do_cosmos_op(container, path, "sprocs", path, body=body, encode="json", http_verb="PUT", ...)
+    body <- list(id=procname, body=body)
+    path <- file.path("sprocs", procname)
+    res <- do_cosmos_op(object, path, "sprocs", path, body=body, encode="json", http_verb="PUT", ...)
     sproc <- process_cosmos_response(res)
-    invisible(as_stored_procedure(sproc, container))
+    invisible(as_stored_procedure(sproc, object))
 }
 
 #' @rdname cosmos_stored_procedure
 #' @export
-replace_stored_procedure.cosmos_stored_procedure <- function(container, ...)
+replace_stored_procedure.cosmos_stored_procedure <- function(object, body, ...)
 {
-    replace_stored_procedure.cosmos_container(container$container, container$id, container$body, ...)
+    replace_stored_procedure.cosmos_container(object$container, object$id, body, ...)
 }
 
 
 #' @rdname cosmos_stored_procedure
 #' @export
-delete_stored_procedure <- function(container, ...)
+delete_stored_procedure <- function(object, ...)
 {
     UseMethod("delete_stored_procedure")
 }
 
 #' @rdname cosmos_stored_procedure
 #' @export
-delete_stored_procedure.cosmos_container <- function(container, name, confirm=TRUE, ...)
+delete_stored_procedure.cosmos_container <- function(object, procname, confirm=TRUE, ...)
 {
-    if(!delete_confirmed(confirm, name, "stored procedure"))
+    if(!delete_confirmed(confirm, procname, "stored procedure"))
         return(invisible(NULL))
 
-    path <- file.path("sprocs", name)
-    res <- do_cosmos_op(container, path, "attachments", path, http_verb="DELETE", ...)
+    path <- file.path("sprocs", procname)
+    res <- do_cosmos_op(object, path, "attachments", path, http_verb="DELETE", ...)
     invisible(process_cosmos_response(res))
 }
 
 #' @rdname cosmos_stored_procedure
 #' @export
-delete_stored_procedure.cosmos_stored_procedure <- function(container, ...)
+delete_stored_procedure.cosmos_stored_procedure <- function(object, ...)
 {
-    delete_stored_procedure(container$container, container$id, ...)
+    delete_stored_procedure(object$container, object$id, ...)
 }
 
 

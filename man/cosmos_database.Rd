@@ -13,35 +13,35 @@
 \alias{list_cosmos_databases.cosmos_endpoint}
 \title{Methods for working with Azure Cosmos DB databases}
 \usage{
-get_cosmos_database(endpoint, ...)
+get_cosmos_database(object, ...)
 
-\method{get_cosmos_database}{cosmos_endpoint}(endpoint, name, ...)
+\method{get_cosmos_database}{cosmos_endpoint}(object, database, ...)
 
-create_cosmos_database(endpoint, ...)
+create_cosmos_database(object, ...)
 
 \method{create_cosmos_database}{cosmos_endpoint}(
-  endpoint,
-  name,
+  object,
+  database,
   autoscale_maxRUs = NULL,
   manual_RUs = NULL,
   headers = list(),
   ...
 )
 
-delete_cosmos_database(endpoint, ...)
+delete_cosmos_database(object, ...)
 
-\method{delete_cosmos_database}{cosmos_endpoint}(endpoint, name, confirm = TRUE, ...)
+\method{delete_cosmos_database}{cosmos_endpoint}(object, database, confirm = TRUE, ...)
 
-\method{delete_cosmos_database}{cosmos_database}(endpoint, ...)
+\method{delete_cosmos_database}{cosmos_database}(object, ...)
 
-list_cosmos_databases(endpoint, ...)
+list_cosmos_databases(object, ...)
 
-\method{list_cosmos_databases}{cosmos_endpoint}(endpoint, ...)
+\method{list_cosmos_databases}{cosmos_endpoint}(object, ...)
 }
 \arguments{
-\item{endpoint}{A Cosmos DB endpoint object as obtained from \code{cosmos_endpoint}, or for \code{delete_cosmos_database.cosmos_database}, the database object.}
+\item{object}{A Cosmos DB endpoint object as obtained from \code{cosmos_endpoint}, or for \code{delete_cosmos_database.cosmos_database}, the database object.}
 
-\item{name}{The name of the Cosmos DB database.}
+\item{database}{The name of the Cosmos DB database.}
 
 \item{autoscale_maxRUs, manual_RUs}{For \code{create_cosmos_database}, optional parameters for the maximum request units (RUs) allowed. See the Cosmos DB documentation for more details.}
 
@@ -49,9 +49,27 @@ list_cosmos_databases(endpoint, ...)
 
 \item{confirm}{For \code{delete_cosmos_database}, whether to ask for confirmation before deleting.}
 }
+\value{
+\code{get_cosmos_database} and \code{create_cosmos_database} return an object of class \code{cosmos_database}. \code{list_cosmos_databases} returns a list of such objects.
+}
 \description{
 Methods for working with Azure Cosmos DB databases
 }
 \details{
 These are methods for managing Cosmos DB databases using the core (SQL) API.
+}
+\examples{
+\dontrun{
+
+endp <- cosmos_endpoint("https://myaccount.documents.azure.com:443/", key="mykey")
+
+create_cosmos_database(endp, "mydatabase")
+
+list_cosmos_databases(endp)
+
+db <- get_cosmos_database(endp, "mydatabase")
+
+delete_cosmos_database(db)
+
+}
 }
