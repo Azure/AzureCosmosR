@@ -3,7 +3,7 @@
 #' @param object A Cosmos DB container object, as obtained by `get_cosmos_container` or `create_cosmos_container`, or for `delete_stored_procedure.cosmos_stored_procedure, the stored procedure object.
 #' @param procname The name of the stored procedure.
 #' @param body For `create_stored_procedure` and `replace_stored_procedure`, the body of the stored procedure as text.
-#' @param parameters For `call_stored_procedure`, a list of parameters to pass to the procedure.
+#' @param parameters For `exec_stored_procedure`, a list of parameters to pass to the procedure.
 #' @param confirm For `delete_cosmos_container`, whether to ask for confirmation before deleting.
 #' @param ... Optional arguments passed to lower-level functions.
 #' @details
@@ -24,7 +24,7 @@
 #' list_stored_procedures(cont)
 #'
 #' sw_male <- dplyr::filter(dplyr::starwars, sex == "male")
-#' call_stored_procedure(proc, parameters=list(sw_male))
+#' exec_stored_procedure(proc, parameters=list(sw_male))
 #'
 #' delete_stored_procedure(proc)
 #'
@@ -68,14 +68,14 @@ create_stored_procedure.cosmos_container <- function(object, procname, body, ...
 
 #' @rdname cosmos_stored_procedure
 #' @export
-call_stored_procedure <- function(object, ...)
+exec_stored_procedure <- function(object, ...)
 {
-    UseMethod("call_stored_procedure")
+    UseMethod("exec_stored_procedure")
 }
 
 #' @rdname cosmos_stored_procedure
 #' @export
-call_stored_procedure.cosmos_container <- function(object, procname, parameters=list(), ...)
+exec_stored_procedure.cosmos_container <- function(object, procname, parameters=list(), ...)
 {
     path <- file.path("sprocs", procname)
     res <- do_cosmos_op(object, path, "sprocs", path, body=parameters, encode="json", http_verb="POST", ...)
@@ -84,9 +84,9 @@ call_stored_procedure.cosmos_container <- function(object, procname, parameters=
 
 #' @rdname cosmos_stored_procedure
 #' @export
-call_stored_procedure.cosmos_stored_procedure <- function(object, ...)
+exec_stored_procedure.cosmos_stored_procedure <- function(object, ...)
 {
-    call_stored_procedure(object$container, object$id, ...)
+    exec_stored_procedure(object$container, object$id, ...)
 }
 
 

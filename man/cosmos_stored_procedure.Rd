@@ -5,9 +5,9 @@
 \alias{cosmos_stored_procedure}
 \alias{create_stored_procedure}
 \alias{create_stored_procedure.cosmos_container}
-\alias{call_stored_procedure}
-\alias{call_stored_procedure.cosmos_container}
-\alias{call_stored_procedure.cosmos_stored_procedure}
+\alias{exec_stored_procedure}
+\alias{exec_stored_procedure.cosmos_container}
+\alias{exec_stored_procedure.cosmos_stored_procedure}
 \alias{replace_stored_procedure}
 \alias{replace_stored_procedure.cosmos_container}
 \alias{replace_stored_procedure.cosmos_stored_procedure}
@@ -22,11 +22,11 @@ create_stored_procedure(object, ...)
 
 \method{create_stored_procedure}{cosmos_container}(object, procname, body, ...)
 
-call_stored_procedure(object, ...)
+exec_stored_procedure(object, ...)
 
-\method{call_stored_procedure}{cosmos_container}(object, procname, parameters = list(), ...)
+\method{exec_stored_procedure}{cosmos_container}(object, procname, parameters = list(), ...)
 
-\method{call_stored_procedure}{cosmos_stored_procedure}(object, ...)
+\method{exec_stored_procedure}{cosmos_stored_procedure}(object, ...)
 
 replace_stored_procedure(object, ...)
 
@@ -49,7 +49,7 @@ delete_stored_procedure(object, ...)
 
 \item{body}{For \code{create_stored_procedure} and \code{replace_stored_procedure}, the body of the stored procedure as text.}
 
-\item{parameters}{For \code{call_stored_procedure}, a list of parameters to pass to the procedure.}
+\item{parameters}{For \code{exec_stored_procedure}, a list of parameters to pass to the procedure.}
 
 \item{confirm}{For \code{delete_cosmos_container}, whether to ask for confirmation before deleting.}
 }
@@ -75,7 +75,7 @@ proc <- create_stored_procedure(cont, "myBulkUpload",
 list_stored_procedures(cont)
 
 sw_male <- dplyr::filter(dplyr::starwars, sex == "male")
-call_stored_procedure(proc, parameters=list(sw_male))
+exec_stored_procedure(proc, parameters=list(sw_male))
 
 delete_stored_procedure(proc)
 

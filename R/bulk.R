@@ -76,7 +76,7 @@ import_by_key <- function(container, key, data, procname, init_chunksize, header
     {
         n <- n + 1
         this_chunk <- seq(rows_imported + 1, min(nrows, rows_imported + this_chunksize))
-        this_import <- call_stored_procedure(container, procname, list(data[this_chunk, ]), headers=headers, ...)
+        this_import <- exec_stored_procedure(container, procname, list(data[this_chunk, ]), headers=headers, ...)
         rows_imported <- rows_imported + this_import
         avg_chunksize <- (avg_chunksize * (n-1))/n + this_chunksize/n
         if(verbose)
@@ -150,7 +150,7 @@ bulk_delete.cosmos_container <- function(container, query, partition_key,
     deleted <- 0
     repeat
     {
-        res <- call_stored_procedure.cosmos_container(container, procname, list(query), headers=headers, ...)
+        res <- exec_stored_procedure.cosmos_container(container, procname, list(query), headers=headers, ...)
         deleted <- deleted + res$deleted
         if(!res$continuation)
             break
