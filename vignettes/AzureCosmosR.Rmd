@@ -28,13 +28,16 @@ endp <- cosmos_endpoint("https://myaccount.documents.azure.com:443/", key="mykey
 
 list_cosmos_databases(endp)
 
-get_cosmos_database(endp, "mydatabase")
+db <- get_cosmos_database(endp, "mydatabase")
 
 # create a new container and upload the Star Wars dataset from dplyr
 cont <- create_cosmos_container(db, "mycontainer", partition_key="sex")
 bulk_import(cont, starwars)
 
-query_documents(cont, "select * from mycontainer c")
+query_documents(cont, "select * from mycontainer")
+
+# remove document metadata cruft
+query_documents(cont, "select * from mycontainer", metadata=FALSE)
 
 # an array select: all characters who appear in ANH
 query_documents(cont,
@@ -89,7 +92,7 @@ You can query data in a MongoDB-enabled Cosmos DB instance using the mongolite p
 endp <- cosmos_mongo_endpoint("https://myaccount.mongo.cosmos.azure.com:443/", key="mykey")
 
 # a mongolite::mongo object
-conn <- cosmos_mongo_connection(mendp, "mycollection", "mydatabase")
+conn <- cosmos_mongo_connection(endp, "mycollection", "mydatabase")
 conn$find("{}")
 ```
 
