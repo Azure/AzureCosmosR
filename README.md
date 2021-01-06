@@ -1,4 +1,4 @@
-# AzureCosmosR
+# AzureCosmosR <img src="man/figures/logo.png" align="right" width=150 />
 
 An interface to [Azure Cosmos DB](https://azure.microsoft.com/en-us/services/cosmos-db/), a NoSQL database service from Microsoft.
 
