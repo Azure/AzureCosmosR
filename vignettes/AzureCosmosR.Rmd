@@ -111,11 +111,13 @@ AzureTableStor::list_table_entities(tab, filter="firstname eq 'Satya'")
 As an alternative to AzureCosmosR, you can also use the ODBC protocol to interface with the SQL API. By installing a suitable ODBC driver, you can then talk to Cosmos DB in a manner similar to other SQL databases. An advantage of the ODBC interface is that it fully supports cross-partition queries, unlike the REST API. A disadvantage is that it does not support nested document fields; functions like `array_contains()` cannot be used, and attempts to reference arrays and objects may return incorrect results.
 
 ```r
-conn <- DBI::dbConnect(odbc::odbc(),
+conn <- DBI::dbConnect(
+    odbc::odbc(),
     driver="Microsoft Azure DocumentDB ODBC Driver",
     host="https://myaccount.documents.azure.com:443/",
     authenticationkey="mykey",
-    RESTAPIversion="2018-12-31")  # for large partition key support
+    RESTAPIversion="2018-12-31"  # for large partition key support
+)
 
 DBI::dbListTables(conn)
 
@@ -124,7 +126,7 @@ DBI::dbGetQuery(conn, "select * from mycontainer where gender = 'masculine'")
 
 ## Azure Resource Manager interface
 
-AzureCosmosR extends the AzureRMR class framework with a new `az_cosmosdb` class representing a Cosmos DB account resource, and methods for the `az_resource_group` resource group class.
+On the ARM side, AzureCosmosR extends the AzureRMR class framework with a new `az_cosmosdb` class representing a Cosmos DB account resource, and methods for the `az_resource_group` resource group class.
 
 ```r
 rg <- AzureRMR::get_azure_login()$
@@ -132,8 +134,8 @@ rg <- AzureRMR::get_azure_login()$
     get_resource_group("rgname")
 
 rg$create_cosmosdb_account("mycosmosdb", interface="sql", free_tier=TRUE)
-rg$list_cosmos_accounts()
-cosmos <- rg$get_cosmos_account("mycosmosdb")
+rg$list_cosmosdb_accounts()
+cosmos <- rg$get_cosmosdb_account("mycosmosdb")
 
 # access keys (passwords) for this account
 cosmos$list_keys()
@@ -146,3 +148,9 @@ cosmos$get_sql_endpoint()
 cosmos$get_mongo_endpoint()
 cosmos$get_table_endpoint()
 ```
+
+## Further information
+
+- [An introduction to Azure Cosmos DB](https://www.sqlservercentral.com/articles/an-introduction-to-azure-cosmos-db)
+- [Azure Cosmos DB documentation](https://docs.microsoft.com/en-us/azure/cosmos-db/)
+- [REST API reference](https://docs.microsoft.com/en-us/rest/api/cosmos-db/)

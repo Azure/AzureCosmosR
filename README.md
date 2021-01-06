@@ -97,7 +97,7 @@ AzureTableStor::list_table_entities(tab, filter="firstname eq 'Satya'")
 
 ## Azure Resource Manager interface
 
-AzureCosmosR extends the AzureRMR class framework with a new `az_cosmosdb` class representing a Cosmos DB account resource, and methods for the `az_resource_group` resource group class.
+On the ARM side, AzureCosmosR extends the AzureRMR class framework with a new `az_cosmosdb` class representing a Cosmos DB account resource, and methods for the `az_resource_group` resource group class.
 
 ```r
 rg <- AzureRMR::get_azure_login()$
@@ -105,8 +105,8 @@ rg <- AzureRMR::get_azure_login()$
     get_resource_group("rgname")
 
 rg$create_cosmosdb_account("mycosmosdb", interface="sql", free_tier=TRUE)
-rg$list_cosmos_accounts()
-cosmos <- rg$get_cosmos_account("mycosmosdb")
+rg$list_cosmosdb_accounts()
+cosmos <- rg$get_cosmosdb_account("mycosmosdb")
 
 # access keys (passwords) for this account
 cosmos$list_keys()
