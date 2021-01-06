@@ -1,3 +1,13 @@
+---
+title: "AzureCosmosR: Interface to Azure Cosmos DB"
+author: Hong Ooi
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{AzureCosmosR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{utf8}
+---
+
 # AzureCosmosR
 
 An interface to [Azure Cosmos DB](https://azure.microsoft.com/en-us/services/cosmos-db/), a NoSQL database service from Microsoft.
@@ -53,8 +63,7 @@ Aggregates take some extra work, as the Cosmos DB REST API only has limited supp
 
 ```r
 # average height by sex, by physical partition
-df_lst <- query_documents(
-    cont,
+df_lst <- query_documents(cont,
     "select c.gender, count(1) n, avg(c.height) height
         from mycontainer c
         group by c.gender",
@@ -68,7 +77,9 @@ df_lst %>%
     summarise(height=weighted.mean(height, n))
 ```
 
-## Other interfaces
+Full support for cross-partition queries, including aggregates, may come in a future version of AzureCosmosR.
+
+## Other client interfaces
 
 ### MongoDB
 
@@ -93,6 +104,22 @@ endp <- AzureTableStor::table_endpoint("https://myaccount.table.cosmos.azure.com
 
 tab <- AzureTableStor::storage_table(endp, "mytable")
 AzureTableStor::list_table_entities(tab, filter="firstname eq 'Satya'")
+```
+
+### ODBC (SQL interface)
+
+As an alternative to AzureCosmosR, you can also use the ODBC protocol to interface with the SQL API. By installing a suitable ODBC driver, you can then talk to Cosmos DB in a manner similar to other SQL databases. An advantage of the ODBC interface is that it fully supports cross-partition queries, unlike the REST API. A disadvantage is that it does not support nested document fields; functions like `array_contains()` cannot be used, and attempts to reference arrays and objects may return incorrect results.
+
+```r
+conn <- DBI::dbConnect(odbc::odbc(),
+    driver="Microsoft Azure DocumentDB ODBC Driver",
+    host="https://myaccount.documents.azure.com:443/",
+    authenticationkey="mykey",
+    RESTAPIversion="2018-12-31")  # for large partition key support
+
+DBI::dbListTables(conn)
+
+DBI::dbGetQuery(conn, "select * from mycontainer where gender = 'masculine'")
 ```
 
 ## Azure Resource Manager interface

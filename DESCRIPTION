@@ -10,6 +10,7 @@ Description: An interface to 'Azure CosmosDB': <https://azure.microsoft.com/en-u
 URL: https://github.com/AzureRSDK/AzureCosmosR https://github.com/AzureRSDK/AzureR
 BugReports: https://github.com/AzureRSDK/AzureCosmosR/issues
 License: MIT + file LICENSE
+VignetteBuilder: knitr
 Depends: 
     R (>= 3.3)
 Imports: 
