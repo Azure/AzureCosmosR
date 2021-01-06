@@ -109,7 +109,7 @@ list_cosmos_databases <- function(object, ...)
 list_cosmos_databases.cosmos_endpoint <- function(object, ...)
 {
     res <- do_cosmos_op(object, "dbs", "dbs", "", ...)
-    AzureRMR::named_list(lapply(process_cosmos_response(res)$Databases, function(obj)
+    named_list(lapply(process_cosmos_response(res)$Databases, function(obj)
     {
         obj$endpoint <- object
         structure(obj, class="cosmos_database")

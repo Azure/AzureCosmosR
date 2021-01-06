@@ -25,14 +25,14 @@
 #'
 #' Note that AzureCosmosR provides a client framework only for the SQL API. To use the table storage API, you will also need the AzureTableStor package, and to use the MongoDB API, you will need the mongolite package. Currently, the Cassandra and Gremlin APIs are not supported.
 #'
-#' As an alternative to AzureCosmosR, you can also use the ODBC protocol to interface with the SQL API. By instaling a suitable ODBC driver, you can then talk to Cosmos DB in a manner similar to any SQL database. An advantage of the ODBC interface is that it fully supports cross-partition queries, which AzureCosmosR currently only partially supports. A disadvantage is that it does not support nested document fields; such fields will be flattened into a string.
+#' As an alternative to AzureCosmosR, you can also use the ODBC protocol to interface with the SQL API. By installing a suitable ODBC driver, you can then talk to Cosmos DB in a manner similar to any SQL database. An advantage of the ODBC interface is that it fully supports cross-partition queries, unlike the REST API that AzureCosmosR uses. A disadvantage is that it does not support nested document fields; such fields will be flattened into a string.
 #'
 #' @seealso
 #' [get_cosmosdb_account], [create_cosmosdb_account], [delete_cosmosdb_account]
 #'
 #' [cosmos_endpoint], [cosmos_database], [cosmos_container], [query_documents], [cosmos_mongo_endpoint], [AzureTableStor::table_endpoint], [mongolite::mongo]
 #' @export
-az_cosmosdb <- R6::R6Class("az_cosmosdb", inherit=AzureRMR::az_resource,
+az_cosmosdb <- R6::R6Class("az_cosmosdb", inherit=az_resource,
 
 public=list(
 

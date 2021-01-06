@@ -131,7 +131,7 @@ delete_stored_procedure.cosmos_container <- function(object, procname, confirm=T
         return(invisible(NULL))
 
     path <- file.path("sprocs", procname)
-    res <- do_cosmos_op(object, path, "attachments", path, http_verb="DELETE", ...)
+    res <- do_cosmos_op(object, path, "sprocs", path, http_verb="DELETE", ...)
     invisible(process_cosmos_response(res))
 }
 

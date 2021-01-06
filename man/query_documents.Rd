@@ -47,7 +47,7 @@ The default \code{cross_partition=TRUE} runs the query for all partition key val
 
 The \code{by_physical_partition} argument allows running the query separately across all \emph{physical} partitions. Each physical partition corresponds to a partition key range, and contains the documents for one or more key values. You can set this to TRUE to run a query that fails when run across partitions; the returned object will be a list containing the individual query results from each physical partition.
 
-As an alternative to AzureCosmosR, you can also use the ODBC protocol to interface with the SQL API. By instaling a suitable ODBC driver, you can then talk to Cosmos DB in a manner similar to any SQL database. An advantage of the ODBC interface is that it fully supports cross-partition queries, which AzureCosmosR currently only partially supports. A disadvantage is that it does not support nested document fields; such fields will be flattened into a string.
+As an alternative to AzureCosmosR, you can also use the ODBC protocol to interface with the SQL API. By installing a suitable ODBC driver, you can then talk to Cosmos DB in a manner similar to any SQL database. An advantage of the ODBC interface is that it fully supports cross-partition queries, unlike the REST API. A disadvantage is that it does not support nested document fields; such fields will be flattened into a string.
 }
 \examples{
 \dontrun{

@@ -141,7 +141,7 @@ list_cosmos_containers <- function(object, ...)
 list_cosmos_containers.cosmos_database <- function(object, ...)
 {
     res <- do_cosmos_op(object, "colls", "colls", "", ...)
-    AzureRMR::named_list(lapply(process_cosmos_response(res)$DocumentCollections, function(obj)
+    named_list(lapply(process_cosmos_response(res)$DocumentCollections, function(obj)
     {
         obj$database <- object
         structure(obj, class="cosmos_container")

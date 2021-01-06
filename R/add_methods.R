@@ -51,17 +51,18 @@ NULL
 #'
 #' @rdname get_cosmosdb_account
 #' @name get_cosmosdb_account
-#' @aliases get_cosmosdb_account
+#' @aliases get_cosmosdb_account list_cosmosdb_accounts
 #' @section Usage:
 #' ```
 #' get_cosmosdb_account(name)
+#' list_cosmosdb_accounts()
 #' ```
 #' @section Arguments:
 #' - `name`: The name of the Cosmos DB account.
 #' @section Details:
-#' This method retrieves the details for an existing Azure Cosmos DB account.
+#' `get_cosmosdb_account` retrieves the details for an existing Azure Cosmos DB account. `list_cosmosdb_accounts` retrieves all the Cosmos DB accounts within the resource group.
 #' @section Value:
-#' An object of class `az_cosmosdb` representing the Cosmos DB account.
+#' For `get_cosmosdb_account`, an object of class `az_cosmosdb` representing the Cosmos DB account. For `list_cosmosdb_accounts`, a list of such objects.
 #' @seealso
 #' [create_cosmosdb_account], [delete_cosmosdb_account]
 #'
@@ -103,7 +104,7 @@ NULL
 
 add_methods <- function()
 {
-    AzureRMR::az_resource_group$set("public", "create_cosmosdb_account", overwrite=TRUE,
+    az_resource_group$set("public", "create_cosmosdb_account", overwrite=TRUE,
     function(name, location=self$location,
              interface=c("sql", "cassandra", "mongo", "table", "graph"),
              serverless=FALSE, free_tier=FALSE,
@@ -146,14 +147,39 @@ add_methods <- function()
             kind=kind, properties=properties, wait=wait, ...)
     })
 
-    AzureRMR::az_resource_group$set("public", "get_cosmosdb_account", overwrite=TRUE,
+    az_resource_group$set("public", "get_cosmosdb_account", overwrite=TRUE,
     function(name)
     {
         AzureCosmosR::az_cosmosdb$new(self$token, self$subscription, self$name,
             type="Microsoft.documentDB/databaseAccounts", name=name)
     })
 
-    AzureRMR::az_resource_group$set("public", "delete_cosmosdb_account", overwrite=TRUE,
+    az_resource_group$set("public", "list_cosmosdb_accounts", overwrite=TRUE,
+    function()
+    {
+        provider <- "Microsoft.documentDB"
+        path <- "databaseAccounts"
+        api_version <- az_subscription$
+            new(self$token, self$subscription)$
+            get_provider_api_version(provider, path)
+
+        op <- file.path("resourceGroups", self$name, "providers", provider, path)
+
+        cont <- call_azure_rm(self$token, self$subscription, op, api_version=api_version)
+        lst <- lapply(cont$value,
+            function(parms) AzureCosmosR::az_cosmosdb$new(self$token, self$subscription, deployed_properties=parms))
+
+        # keep going until paging is complete
+        while(!is_empty(cont$nextLink))
+        {
+            cont <- call_azure_url(self$token, cont$nextLink)
+            lst <- lapply(cont$value,
+                function(parms) AzureCosmosR::az_cosmosdb$new(self$token, self$subscription, deployed_properties=parms))
+        }
+        named_list(lst)
+    })
+
+    az_resource_group$set("public", "delete_cosmosdb_account", overwrite=TRUE,
     function(name, confirm=TRUE, wait=FALSE)
     {
         self$get_cosmosdb_account(name)$delete(confirm=confirm, wait=wait)

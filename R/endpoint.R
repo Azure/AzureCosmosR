@@ -25,7 +25,7 @@
 #'
 #' In most cases, you should not have to use `call_cosmos_endpoint` directly. Instead, use `do_cosmos_op` which provides a slightly higher-level interface to the API, by providing sensible defaults for the `resource_type` and`resource_link` arguments and partially filling in the request path.
 #'
-#' As an alternative to AzureCosmosR, you can also use the ODBC protocol to interface with the SQL API. By instaling a suitable ODBC driver, you can then talk to Cosmos DB in a manner similar to any SQL database. An advantage of the ODBC interface is that it fully supports cross-partition queries, which AzureCosmosR currently only partially supports. A disadvantage is that it does not support nested document fields; such fields will be flattened into a string.
+#' As an alternative to AzureCosmosR, you can also use the ODBC protocol to interface with the SQL API. By installing a suitable ODBC driver, you can then talk to Cosmos DB in a manner similar to any SQL database. An advantage of the ODBC interface is that it fully supports cross-partition queries, unlike the REST API that AzureCosmosR uses. A disadvantage is that it does not support nested document fields; such fields will be flattened into a string.
 #'
 #' Note that AzureCosmosR is a framework for communicating directly with the _core_ Cosmos DB client API, also known as the "SQL" API. Cosmos DB provides other APIs as options when creating an account, such as Cassandra, MongoDB, table storage and Gremlin. These APIs are not supported by AzureCosmosR, but you can use other R packages for working with them. For example, you can use AzureTableStor to work with the table storage API, or mongolite to work with the MongoDB API.
 #' @return
@@ -83,7 +83,7 @@ call_cosmos_endpoint <- function(endpoint, path, resource_type, resource_link,
     headers$`x-ms-version` <- endpoint$api_version
     url <- endpoint$host
     url$path <- gsub("/{2,}", "/", utils::URLencode(enc2utf8(path)))
-    if(!AzureRMR::is_empty(options))
+    if(!is_empty(options))
         url$query <- options
 
     # repeat until no more continuations

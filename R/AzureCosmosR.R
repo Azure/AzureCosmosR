@@ -1,3 +1,6 @@
+#' @import AzureRMR
+NULL
+
 utils::globalVariables(c("self", "private"))
 
 

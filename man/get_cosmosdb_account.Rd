@@ -2,12 +2,14 @@
 % Please edit documentation in R/add_methods.R
 \name{get_cosmosdb_account}
 \alias{get_cosmosdb_account}
+\alias{list_cosmosdb_accounts}
 \title{Get Azure Cosmos DB account}
 \description{
 Method for the \link[AzureRMR:az_resource_group]{AzureRMR::az_resource_group} class.
 }
 \section{Usage}{
 \preformatted{get_cosmosdb_account(name)
+list_cosmosdb_accounts()
 }
 }
 
@@ -20,12 +22,12 @@ Method for the \link[AzureRMR:az_resource_group]{AzureRMR::az_resource_group} cl
 
 \section{Details}{
 
-This method retrieves the details for an existing Azure Cosmos DB account.
+\code{get_cosmosdb_account} retrieves the details for an existing Azure Cosmos DB account. \code{list_cosmosdb_accounts} retrieves all the Cosmos DB accounts within the resource group.
 }
 
 \section{Value}{
 
-An object of class \code{az_cosmosdb} representing the Cosmos DB account.
+For \code{get_cosmosdb_account}, an object of class \code{az_cosmosdb} representing the Cosmos DB account. For \code{list_cosmosdb_accounts}, a list of such objects.
 }
 
 \seealso{
