@@ -1,5 +1,5 @@
 Package: AzureCosmosR
-Title: Interface to the 'Azure Cosmos DB' document database service
+Title: Interface to the 'Azure Cosmos DB' 'NoSQL' Database Service
 Version: 0.0.1
 Authors@R: c(
     person("Hong", "Ooi", , "hongooi73@gmail.com", role=c("aut", "cre")),

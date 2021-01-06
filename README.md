@@ -68,7 +68,7 @@ df_lst %>%
     summarise(height=weighted.mean(height, n))
 ```
 
-## Other interfaces
+## Other client interfaces
 
 ### MongoDB
 
