@@ -1,8 +1,8 @@
 #' Methods for working with Azure Cosmos DB stored procedures
 #'
-#' @param object A Cosmos DB container object, as obtained by `get_cosmos_container` or `create_cosmos_container`, or for `delete_stored_procedure.cosmos_stored_procedure, the stored procedure object.
+#' @param object A Cosmos DB container object, as obtained by `get_cosmos_container` or `create_cosmos_container`, or for `delete_stored_procedure.cosmos_stored_procedure`, the stored procedure object.
 #' @param procname The name of the stored procedure.
-#' @param body For `create_stored_procedure` and `replace_stored_procedure`, the body of the stored procedure as text.
+#' @param body For `create_stored_procedure` and `replace_stored_procedure`, the body of the stored procedure. This can be either a character string containing the source code, or the name of a source file.
 #' @param parameters For `exec_stored_procedure`, a list of parameters to pass to the procedure.
 #' @param confirm For `delete_cosmos_container`, whether to ask for confirmation before deleting.
 #' @param ... Optional arguments passed to lower-level functions.
@@ -11,25 +11,51 @@
 #' @examples
 #' \dontrun{
 #'
-#' # example text of a stored procedure: uploading multiple rows of data
-#' readLines(system.file("srcjs/bulkUpload.js", package="AzureCosmosR"))
-#'
 #' endp <- cosmos_endpoint("https://myaccount.documents.azure.com:443/", key="mykey")
 #' db <- get_cosmos_database(endp, "mydatabase")
 #' cont <- create_cosmos_container(db, "mycontainer", partition_key="sex")
 #'
-#' proc <- create_stored_procedure(cont, "myBulkUpload",
-#'     body=readLines(system.file("srcjs/bulkUpload.js", package="AzureCosmosR")))
+#' # a simple stored procedure
+#' src <- 'function helloworld() {
+#'    var context = getContext();
+#'     var response = context.getResponse();
+#'     response.setBody("Hello, World");
+#' }'
+#' create_stored_procedure(cont, "helloworld", src)
+#' sproc <- get_stored_procedure(cont, "helloworld")
+#' exec_stored_procedure(sproc)
+#'
+#' # more complex example: uploading data
+#' sproc2 <- create_stored_procedure(cont, "myBulkUpload",
+#'     body=system.file("srcjs/bulkUpload.js", package="AzureCosmosR"))
 #'
 #' list_stored_procedures(cont)
 #'
 #' sw_male <- dplyr::filter(dplyr::starwars, sex == "male")
-#' exec_stored_procedure(proc, parameters=list(sw_male))
+#' exec_stored_procedure(sproc2, parameters=list(sw_male))
 #'
-#' delete_stored_procedure(proc)
+#' delete_stored_procedure(sproc)
+#' delete_stored_procedure(sproc2)
 #'
 #' }
 #' @aliases cosmos_stored_procedure
+#' @rdname cosmos_stored_procedure
+#' @export
+get_stored_procedure <- function(object, ...)
+{
+    UseMethod("get_stored_procedure")
+}
+
+#' @rdname cosmos_stored_procedure
+#' @export
+get_stored_procedure.cosmos_container <- function(object, procname, ...)
+{
+    path <- file.path("sprocs", procname)
+    res <- do_cosmos_op(object, path, "sprocs", path, ...)
+    sproc <- process_cosmos_response(res)
+    as_stored_procedure(sproc, object)
+}
+
 #' @rdname cosmos_stored_procedure
 #' @export
 list_stored_procedures <- function(object, ...)
@@ -59,6 +85,8 @@ create_stored_procedure <- function(object, ...)
 #' @export
 create_stored_procedure.cosmos_container <- function(object, procname, body, ...)
 {
+    if(is.character(body) && length(body) == 1 && file.exists(body))
+        body <- readLines(body)
     body <- list(id=procname, body=paste0(body, collapse="\n"))
     res <- do_cosmos_op(object, "sprocs", "sprocs", "", body=body, encode="json", http_verb="POST", ...)
     sproc <- process_cosmos_response(res)

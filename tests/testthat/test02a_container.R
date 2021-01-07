@@ -4,23 +4,23 @@ password <- Sys.getenv("AZ_TEST_PASSWORD")
 subscription <- Sys.getenv("AZ_TEST_SUBSCRIPTION")
 
 if(tenant == "" || app == "" || password == "" || subscription == "")
-    skip("Database tests skipped: ARM credentials not set")
+    skip("Container querying tests skipped: ARM credentials not set")
 
 rgname <- Sys.getenv("AZ_TEST_COSMOSDB_RG")
 acctname <- Sys.getenv("AZ_TEST_COSMOSDB_ACCT")
 
 if(rgname == "" || acctname == "")
-    skip("Database tests skipped: resource details not set")
+    skip("Container querying tests skipped: resource details not set")
 
 cosmos <- AzureRMR::az_rm$new(tenant=tenant, app=app, password=password)$
     get_subscription(subscription)$
     get_resource_group(rgname)$
     get_cosmosdb_account(acctname)
+endp <- cosmos$get_endpoint()
 
 
 test_that("Container querying methods work",
 {
-    endp <- cosmos$get_endpoint()
     db <- create_cosmos_database(endp, make_name())
     expect_is(db, "cosmos_database")
 
@@ -61,15 +61,13 @@ test_that("Container querying methods work",
     pkranges <- list_partition_key_ranges(cont)
     expect_is(pkranges, "character")
     expect_true(length(pkranges) >= 1)
+
+    expect_silent(delete_document(doc1, confirm=FALSE))
+    expect_length(list_documents(cont), nrow(iris) - 1)
 })
 
 
 teardown({
-    endp <- cosmos$get_endpoint()
     lst <- list_cosmos_databases(endp)
     lapply(lst, delete_cosmos_database, confirm=FALSE)
 })
-
-
-
-
