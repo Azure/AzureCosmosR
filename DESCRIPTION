@@ -7,8 +7,8 @@ Authors@R: c(
     person("Microsoft", role="cph")
     )
 Description: An interface to 'Azure CosmosDB': <https://azure.microsoft.com/en-us/services/cosmos-db/>. On the admin side, 'AzureCosmosR' provides functionality to create and manage 'Cosmos DB' instances in Microsoft's 'Azure' cloud. On the client side, it provides an interface to the 'Cosmos DB' SQL API, letting the user store and query documents and attachments in 'Cosmos DB'. Part of the 'AzureR' family of packages.
-URL: https://github.com/AzureRSDK/AzureCosmosR https://github.com/AzureRSDK/AzureR
-BugReports: https://github.com/AzureRSDK/AzureCosmosR/issues
+URL: https://github.com/Azure/AzureCosmosR https://github.com/Azure/AzureR
+BugReports: https://github.com/Azure/AzureCosmosR/issues
 License: MIT + file LICENSE
 VignetteBuilder: knitr
 Depends: 
