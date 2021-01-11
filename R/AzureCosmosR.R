@@ -1,6 +1,13 @@
+#' @import AzureRMR
+NULL
+
+utils::globalVariables(c("self", "private"))
+
+
 .onLoad <- function(libname, pkgname)
 {
     options(azure_cosmosdb_api_version="2018-12-31")
+    add_methods()
 }
 
 

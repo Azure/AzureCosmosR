@@ -1,9 +1,26 @@
+#' Methods for working with Azure Cosmos DB attachments
+#'
+#' @param document A Cosmos DB document object, as obtained by `get_document`, `create_document`, `list_documents` or `query_documents`.
+#' @param file For `create_attachment`, the file to turn into an attachment. This can be a filename, a raw connection, or a URL connection pointing to a location on the Internet.
+#' @param content_type For `create_attachment`, the content type of the attachment. Defaults to "application/octet-stream".
+#' @param id For `create_attachment` and `delete_attachment`, the ID for the attachment. This is optional for `create_attachment`.
+#' @param attachment For `download_attachment`, the attachment object, as obtained by `list_attachments` or `create_attachment`.
+#' @param destfile For `download_attachment`, the destination filename.
+#' @param overwrite For `download_attachment`, whether to overwrite an existing destination file.
+#' @param confirm For `delete_attachment`, whether to ask for confirmation before deleting.
+#' @param options,headers,... Optional arguments passed to lower-level functions.
+#' @details
+#' These are methods for working with document attachments in Cosmos DB using the core (SQL) API. Note that the attachments API is deprecated; going forward, you should explore other options for hosting external files, such as Azure blob storage.
+#'
+#' @aliases cosmos_attachment
+#' @rdname cosmos_attachment
 #' @export
 list_attachments <- function(document, ...)
 {
     UseMethod("list_attachments")
 }
 
+#' @rdname cosmos_attachment
 #' @export
 list_attachments.cosmos_document <- function(document, ...)
 {
@@ -15,14 +32,17 @@ list_attachments.cosmos_document <- function(document, ...)
 }
 
 
+#' @rdname cosmos_attachment
 #' @export
 create_attachment <- function(document, ...)
 {
     UseMethod("create_attachment")
 }
 
+#' @rdname cosmos_attachment
 #' @export
-create_attachment.cosmos_document <- function(document, file, content_type, id=NULL, headers=list(), ...)
+create_attachment.cosmos_document <- function(document, file, content_type="application/octet-stream",
+    id=NULL, headers=list(), ...)
 {
     # read the data if a (non-URL) connection or filename
     if((inherits(file, "connection") && !inherits(file, "url")) ||
@@ -60,12 +80,14 @@ create_attachment.cosmos_document <- function(document, file, content_type, id=N
 }
 
 
+#' @rdname cosmos_attachment
 #' @export
 download_attachment <- function(attachment, ...)
 {
     UseMethod("download_attachment")
 }
 
+#' @rdname cosmos_attachment
 #' @export
 download_attachment.cosmos_attachment <- function(attachment, destfile, options=list(), headers=list(),
     overwrite=FALSE, ...)
@@ -92,12 +114,14 @@ download_attachment.cosmos_attachment <- function(attachment, destfile, options=
 }
 
 
+#' @rdname cosmos_attachment
 #' @export
 delete_attachment <- function(document, ...)
 {
     UseMethod("delete_attachment")
 }
 
+#' @rdname cosmos_attachment
 #' @export
 delete_attachment.cosmos_document <- function(document, id, confirm=TRUE, ...)
 {
@@ -109,6 +133,7 @@ delete_attachment.cosmos_document <- function(document, id, confirm=TRUE, ...)
     invisible(process_cosmos_response(res, ...))
 }
 
+#' @rdname cosmos_attachment
 #' @export
 delete_attachment.cosmos_attachment <- function(document, ...)
 {

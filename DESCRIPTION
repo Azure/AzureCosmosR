@@ -1,5 +1,5 @@
 Package: AzureCosmosR
-Title: Interface to the 'Azure Cosmos DB' document database service
+Title: Interface to the 'Azure Cosmos DB' 'NoSQL' Database Service
 Version: 0.0.1
 Authors@R: c(
     person("Hong", "Ooi", , "hongooi73@gmail.com", role=c("aut", "cre")),
@@ -10,19 +10,26 @@ Description: An interface to 'Azure CosmosDB': <https://azure.microsoft.com/en-u
 URL: https://github.com/Azure/AzureCosmosR https://github.com/Azure/AzureR
 BugReports: https://github.com/Azure/AzureCosmosR/issues
 License: MIT + file LICENSE
+VignetteBuilder: knitr
 Depends: 
     R (>= 3.3)
 Imports: 
     utils,
-    AzureRMR (>= 2.0.0),
+    AzureRMR (>= 2.3.3),
+    curl,
     openssl,
     jsonlite,
     httr,
     uuid,
     vctrs (>= 0.3.0)
 Suggests:
+    AzureTableStor,
+    mongolite,
+    DBI,
+    odbc,
+    dplyr,
     testthat,
     knitr,
     rmarkdown
-Roxygen: list(markdown=TRUE)
+Roxygen: list(markdown=TRUE, r6=FALSE)
 RoxygenNote: 7.1.1
