@@ -10,6 +10,8 @@ An interface to [Azure Cosmos DB](https://azure.microsoft.com/en-us/services/cos
 
 On the Resource Manager side, AzureCosmosR extends the [AzureRMR](https://cran.r-project.org/package=AzureRMR) class framework to allow creating and managing Cosmos DB accounts. On the client side, it provides a comprehensive interface to the Cosmos DB SQL/core API as well as bridges to the MongoDB and table storage APIs.
 
+The primary repo for this package is at https://github.com/Azure/AzureCosmosR; please submit issues and PRs there. It is also mirrored at the Cloudyr org at https://github.com/cloudyr/AzureCosmosR. You can install the development version of the package with `devtools::install_github("Azure/AzureCosmosR")`.
+
 ## SQL interface
 
 AzureCosmosR provides a suite of methods to work with databases, containers (tables) and documents (rows) using the SQL API.
