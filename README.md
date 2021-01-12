@@ -1,5 +1,9 @@
 # AzureCosmosR <img src="man/figures/logo.png" align="right" width=150 />
 
+[![CRAN](https://www.r-pkg.org/badges/version/AzureCosmosR)](https://cran.r-project.org/package=AzureCosmosR)
+![Downloads](https://cranlogs.r-pkg.org/badges/AzureCosmosR)
+![R-CMD-check](https://github.com/Azure/AzureCosmosR/workflows/R-CMD-check/badge.svg)
+
 An interface to [Azure Cosmos DB](https://azure.microsoft.com/en-us/services/cosmos-db/), a NoSQL database service from Microsoft.
 
 > Azure Cosmos DB is a fully managed NoSQL database for modern app development. Single-digit millisecond response times, and automatic and instant scalability, guarantee speed at any scale. Business continuity is assured with SLA-backed availability and enterprise-grade security. App development is faster and more productive thanks to turnkey multi region data distribution anywhere in the world, open source APIs and SDKs for popular languages. As a fully managed service, Azure Cosmos DB takes database administration off your hands with automatic management, updates and patching. It also handles capacity management with cost-effective serverless and automatic scaling options that respond to application needs to match capacity with demand.
@@ -119,3 +123,7 @@ cosmos$get_sql_endpoint()
 cosmos$get_mongo_endpoint()
 cosmos$get_table_endpoint()
 ```
+
+----
+<p align="center"><a href="https://github.com/Azure/AzureR"><img src="https://github.com/Azure/AzureR/raw/master/images/logo2.png" width=800 /></a></p>
+
