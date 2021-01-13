@@ -4,10 +4,13 @@
 #' @param procname The name of the stored procedure.
 #' @param body For `create_stored_procedure` and `replace_stored_procedure`, the body of the stored procedure. This can be either a character string containing the source code, or the name of a source file.
 #' @param parameters For `exec_stored_procedure`, a list of parameters to pass to the procedure.
-#' @param confirm For `delete_cosmos_container`, whether to ask for confirmation before deleting.
+#' @param confirm For `delete_stored_procedure`, whether to ask for confirmation before deleting.
 #' @param ... Optional arguments passed to lower-level functions.
 #' @details
 #' These are methods for working with stored procedures in Azure Cosmos DB using the core (SQL) API. In the Cosmos DB model, stored procedures are written in JavaScript and associated with a container.
+#'
+#' @seealso
+#' [cosmos_container], [get_udf]
 #' @examples
 #' \dontrun{
 #'

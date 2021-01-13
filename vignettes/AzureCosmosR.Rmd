@@ -46,7 +46,7 @@ query_documents(cont,
         where array_contains(c.films, 'A New Hope')")
 ```
 
-You can easily create and execute stored procedures:
+You can easily create and execute stored procedures and user-defined functions:
 
 ```r
 proc <- create_stored_procedure(
@@ -60,6 +60,10 @@ proc <- create_stored_procedure(
 )
 
 exec_stored_procedure(proc)
+
+create_udf(cont, "times2", "function(x) { return 2*x; }")
+
+query_documents(cont, "select udf.times2(c.height) from cont c")
 ```
 
 Aggregates take some extra work, as the Cosmos DB REST API only has limited support for cross-partition queries. Set `by_physical_partition=TRUE` in the `query_documents` call, which will run the query on each physical partition and return a list of data frames. You can then process the list to obtain an overall result.

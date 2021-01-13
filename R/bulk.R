@@ -58,7 +58,7 @@ bulk_import.cosmos_container <- function(container, data, init_chunksize=1000, v
         if(is.null(data[[key]]))
             stop("Data does not contain partition key", call.=FALSE)
         lapply(split(data, data[[key]]), function(partdata)
-            import_by_key(container, partdata[[key]][1], partdata, procname, init_chunksize, ...))
+            import_by_key(container, partdata[[key]][1], partdata, procname, init_chunksize, verbose=verbose, ...))
     }
     invisible(res)
 }

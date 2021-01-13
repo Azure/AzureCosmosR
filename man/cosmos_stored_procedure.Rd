@@ -57,7 +57,7 @@ delete_stored_procedure(object, ...)
 
 \item{parameters}{For \code{exec_stored_procedure}, a list of parameters to pass to the procedure.}
 
-\item{confirm}{For \code{delete_cosmos_container}, whether to ask for confirmation before deleting.}
+\item{confirm}{For \code{delete_stored_procedure}, whether to ask for confirmation before deleting.}
 }
 \description{
 Methods for working with Azure Cosmos DB stored procedures
@@ -95,4 +95,7 @@ delete_stored_procedure(sproc)
 delete_stored_procedure(sproc2)
 
 }
+}
+\seealso{
+\link{cosmos_container}, \link{get_udf}
 }
