@@ -3,7 +3,7 @@
 #' @param container A Cosmos DB container object, as obtained by `get_cosmos_container` or `create_cosmos_container`.
 #' @param query A string containing the query text.
 #' @param parameters A named list of parameters to pass to a parameterised query, if required.
-#' @param cross_partition,partition_key,by_physical_partition Arguments that control how to handle cross-partition queries. See 'Details' below.
+#' @param cross_partition,partition_key,by_pkrange Arguments that control how to handle cross-partition queries. See 'Details' below.
 #' @param as_data_frame Whether to return the query result as a data frame, or a list of Cosmos DB document objects.
 #' @param metadata Whether to include Cosmos DB document metadata in the query result.
 #' @param headers,... Optional arguments passed to lower-level functions.
@@ -14,7 +14,7 @@
 #'
 #' The default `cross_partition=TRUE` runs the query for all partition key values and then attempts to stitch the results together. To run the query for only one key value, set `cross_partition=FALSE` and `partition_key` to the desired value. You can obtain all the values of the key with the [list_partition_key_values] function.
 #'
-#' The `by_physical_partition` argument allows running the query separately across all _physical_ partitions. Each physical partition corresponds to a partition key range, and contains the documents for one or more key values. You can set this to TRUE to run a query that fails when run across partitions; the returned object will be a list containing the individual query results from each physical partition.
+#' The `by_pkrange` argument allows running the query separately across all _partition key ranges_. Each partition key range corresponds to a separate physical partition, and contains the documents for one or more key values. You can set this to TRUE to run a query that fails when run across partitions; the returned object will be a list containing the individual query results from each pkrange.
 #'
 #' As an alternative to AzureCosmosR, you can also use the ODBC protocol to interface with the SQL API. By installing a suitable ODBC driver, you can then talk to Cosmos DB in a manner similar to other SQL databases. An advantage of the ODBC interface is that it fully supports cross-partition queries, unlike the REST API. A disadvantage is that it does not support nested document fields; functions like `array_contains()` cannot be used, and attempts to reference arrays and objects may return incorrect results.
 #' @seealso
@@ -49,11 +49,11 @@
 #' #  Bad Request (HTTP 400). Failed to complete Cosmos DB operation. Message:
 #' # ...
 #'
-#' # run query separately by physical partition and combine the results manually
+#' # run query separately by pkrange and combine the results manually
 #' query_documents(
 #'     cont,
 #'     "select avg(c.height) avgheight, count(1) n from mycontainer c",
-#'     by_physical_partition=TRUE
+#'     by_pkrange=TRUE
 #' )
 #'
 #' }
@@ -66,7 +66,7 @@ query_documents <- function(container, ...)
 #' @rdname query_documents
 #' @export
 query_documents.cosmos_container <- function(container, query, parameters=list(),
-    cross_partition=TRUE, partition_key=NULL, by_physical_partition=FALSE,
+    cross_partition=TRUE, partition_key=NULL, by_pkrange=FALSE,
     as_data_frame=TRUE, metadata=TRUE, headers=list(), ...)
 {
     headers <- utils::modifyList(headers, list(`Content-Type`="application/query+json"))
@@ -81,12 +81,12 @@ query_documents.cosmos_container <- function(container, query, parameters=list()
     res <- do_cosmos_op(container, "docs", "docs", headers=headers, body=body, encode="json", http_verb="POST", ...)
 
     # sending query to individual partitions (low-level API)
-    if(by_physical_partition)
+    if(by_pkrange)
     {
-        message("Running query on individual physical partitions")
+        message("Running query on individual pkrange")
         # if(query_needs_rewrite(res))
         # {
-        #     message("Also rewriting query for individual physical partitions")
+        #     message("Also rewriting query for individual pkranges")
         #     body$query <- rewrite_query(res)
         # }
         part_ids <- list_partition_key_ranges(container)

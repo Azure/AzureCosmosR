@@ -26,7 +26,7 @@ list_partition_key_values <- function(container)
 {
     key <- get_partition_key(container)[1]
     qry <- sprintf("select distinct value %s.%s from %s", container$id, key, container$id)
-    lst <- suppressMessages(query_documents(container, qry, by_physical_partition=TRUE))
+    lst <- suppressMessages(query_documents(container, qry, by_pkrange=TRUE))
     unique(unlist(lst))
 }
 

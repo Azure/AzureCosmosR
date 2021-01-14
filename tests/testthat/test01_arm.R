@@ -61,5 +61,5 @@ test_that("ARM interface works",
 })
 
 teardown({
-    rg$delete(confirm=FALSE)
+    suppressMessages(rg$delete(confirm=FALSE))
 })

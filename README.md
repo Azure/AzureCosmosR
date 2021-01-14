@@ -59,19 +59,19 @@ create_udf(cont, "times2", "function(x) { return 2*x; }")
 query_documents(cont, "select udf.times2(c.height) from cont c")
 ```
 
-Aggregates take some extra work, as the Cosmos DB REST API only has limited support for cross-partition queries. Set `by_physical_partition=TRUE` in the `query_documents` call, which will run the query on each physical partition and return a list of data frames. You can then process the list to obtain an overall result.
+Aggregates take some extra work, as the Cosmos DB REST API only has limited support for cross-partition queries. Set `by_pkrange=TRUE` in the `query_documents` call, which will run the query on each partition key range (pkrange) and return a list of data frames. You can then process the list to obtain an overall result.
 
 ```r
-# average height by sex, by physical partition
+# average height by sex, by pkrange
 df_lst <- query_documents(
     cont,
     "select c.gender, count(1) n, avg(c.height) height
         from mycontainer c
         group by c.gender",
-    by_physical_partition=TRUE
+    by_pkrange=TRUE
 )
 
-# combine physical partition results
+# combine pkrange results
 df_lst %>%
     bind_rows(.id="pkrange") %>%
     group_by(gender) %>%
