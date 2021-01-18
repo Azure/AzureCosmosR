@@ -27,6 +27,9 @@ bulk_delete(container, ...)
 
 \item{headers, ...}{Optional arguments passed to lower-level functions.}
 }
+\value{
+The number of rows deleted.
+}
 \description{
 Delete a set of documents from an Azure Cosmos DB container
 }

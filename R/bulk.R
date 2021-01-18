@@ -10,6 +10,8 @@
 #' This is a convenience function to import a dataset into a container. It works by creating a stored procedure and then calling it in a loop, passing the to-be-imported data in chunks. The dataset must include a column for the container's partition key or an error will result.
 #'
 #' Note that this function is not meant for production use. In particular, if the import fails midway through, it will not clean up after itself: you should call `bulk_delete` to remove the remnants of a failed import.
+#' @return
+#' A list containing the number of rows imported, for each value of the partition key.
 #' @seealso
 #' [bulk_delete], [cosmos_container]
 #' @examples
@@ -24,7 +26,7 @@
 #' bulk_import(cont, dplyr::starwars)
 #'
 #' # importing from a JSON file
-#' writeLines(jsonlite::toJSON(dplyr::starwars), "starwars.json"
+#' writeLines(jsonlite::toJSON(dplyr::starwars), "starwars.json")
 #' bulk_import(cont, "starwars.json")
 #'
 #' }
@@ -101,6 +103,8 @@ import_by_key <- function(container, key, data, procname, init_chunksize, header
 #' @param headers,... Optional arguments passed to lower-level functions.
 #' @details
 #' This is a convenience function to delete multiple documents from a container. It works by creating a stored procedure and then calling it with the supplied query as a parameter. This function is not meant for production use.
+#' @return
+#' The number of rows deleted.
 #' @seealso
 #' [bulk_import], [cosmos_container]
 #' @examples

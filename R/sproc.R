@@ -9,6 +9,8 @@
 #' @details
 #' These are methods for working with stored procedures in Azure Cosmos DB using the core (SQL) API. In the Cosmos DB model, stored procedures are written in JavaScript and associated with a container.
 #'
+#' @return
+#' For `get_stored_procedure` and `create_stored_procedure`, an object of class `cosmos_stored_procedure`. For `list_stored_procedures`, a list of such objects.
 #' @seealso
 #' [cosmos_container], [get_udf]
 #' @examples

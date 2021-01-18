@@ -8,6 +8,8 @@
 #' @details
 #' These are methods for working with user-defined functions (UDFs) in Azure Cosmos DB using the core (SQL) API. In the Cosmos DB model, UDFs are written in JavaScript and associated with a container.
 #'
+#' @return
+#' For `get_udf` and `create_udf`, an object of class `cosmos_udf`. For `list_udfs`, a list of such objects.
 #' @seealso
 #' [cosmos_container], [get_stored_procedure]
 #' @examples

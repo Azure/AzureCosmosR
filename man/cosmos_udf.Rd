@@ -47,6 +47,9 @@ delete_udf(object, ...)
 
 \item{confirm}{For \code{delete_udf}, whether to ask for confirmation before deleting.}
 }
+\value{
+For \code{get_udf} and \code{create_udf}, an object of class \code{cosmos_udf}. For \code{list_udfs}, a list of such objects.
+}
 \description{
 Methods for working with Azure Cosmos DB user-defined functions
 }

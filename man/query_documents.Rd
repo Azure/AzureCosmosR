@@ -35,6 +35,9 @@ query_documents(container, ...)
 
 \item{headers, ...}{Optional arguments passed to lower-level functions.}
 }
+\value{
+\code{query_documents} returns the results of the query. Most of the time this will be a data frame, or list of data frames if \code{by_pkrange=TRUE}.
+}
 \description{
 Query an Azure Cosmos DB container
 }

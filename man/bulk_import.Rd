@@ -29,6 +29,9 @@ bulk_import(container, ...)
 
 \item{procname}{The stored procedure name to use for the server-side import code. Change this if, for some reason, the default name is taken.}
 }
+\value{
+A list containing the number of rows imported, for each value of the partition key.
+}
 \description{
 Import a set of documents to an Azure Cosmos DB container
 }
@@ -49,7 +52,7 @@ cont <- create_cosmos_container(db, "mycontainer", partition_key="sex")
 bulk_import(cont, dplyr::starwars)
 
 # importing from a JSON file
-writeLines(jsonlite::toJSON(dplyr::starwars), "starwars.json"
+writeLines(jsonlite::toJSON(dplyr::starwars), "starwars.json")
 bulk_import(cont, "starwars.json")
 
 }

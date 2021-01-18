@@ -59,6 +59,9 @@ delete_stored_procedure(object, ...)
 
 \item{confirm}{For \code{delete_stored_procedure}, whether to ask for confirmation before deleting.}
 }
+\value{
+For \code{get_stored_procedure} and \code{create_stored_procedure}, an object of class \code{cosmos_stored_procedure}. For \code{list_stored_procedures}, a list of such objects.
+}
 \description{
 Methods for working with Azure Cosmos DB stored procedures
 }
