@@ -11,7 +11,7 @@
 cosmos_endpoint(
   host,
   key,
-  key_type = c("master", "resource"),
+  key_type = c("master", "resource", "aad"),
   api_version = getOption("azure_cosmosdb_api_version")
 )
 
@@ -51,9 +51,9 @@ process_cosmos_response(response, ...)
 \arguments{
 \item{host}{For \code{cosmos_endpoint}, the host URL for the endpoint. Typically of the form \verb{https://\{account-name\}.documents.azure.com:443/} (note the port number).}
 
-\item{key}{For \code{cosmos_endpoint}, a string containing the password for the endpoint. This can be either a master key or a resource token.}
+\item{key}{For \code{cosmos_endpoint}, a string containing the password for the endpoint. This can be either a master key, a resource token, or an AAD token.}
 
-\item{key_type}{For \code{cosmos_endpoint}, the type of the key, either "master" or "resource".}
+\item{key_type}{For \code{cosmos_endpoint}, the type of the key, either "master" or "resource" or "aad".}
 
 \item{api_version}{For \code{cosmos_endpoint}, the API version to use.}
 

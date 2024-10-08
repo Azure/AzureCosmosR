@@ -14,6 +14,27 @@ The primary repo for this package is at https://github.com/Azure/AzureCosmosR; p
 
 ## SQL interface
 
+### AAD authentication
+
+According to the latest security guides for Azure Cosmos DB, role-based access control is suggested in favor over key-based and resource owner password credentials-based authentication: https://learn.microsoft.com/en-us/azure/cosmos-db/table/security/.
+
+Below, we provide an example of how AAD token-based authentication can be done.
+```r
+library(AzureAuth)
+library(AzureCosmosR)
+
+token <- AzureAuth::get_managed_token("https://cosmos.azure.com")
+endpoint <- AzureCosmosR::cosmos_endpoint("https://myaccount.documents.azure.com:443/", key = token, key_type = "aad")
+
+list_cosmos_databases(endpoint)
+
+db <- get_cosmos_database(endpoint, "mydatabase")
+
+#... other operations
+```
+
+### Key based authentication
+
 AzureCosmosR provides a suite of methods to work with databases, containers (tables) and documents (rows) using the SQL API.
 
 ```r
